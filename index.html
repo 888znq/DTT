@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Multiplier Dashboard - LIVE TV</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000432">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        html { height: 100%; }
+
+        body {
+            margin: 0;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: 0;
+            padding-right: 0;
+            background-color: #000432;
+            color: #c8d0e7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border: none;
+            box-sizing: border-box;
+            background: #000432;
+        }
+
+        /* --- Quick Pairs Bar --- */
+        .quick-pairs-inline {
+            display: flex;
+            flex: 1 1 0%;
+            gap: 0;
+            overflow-x: visible;
+            scrollbar-width: none;
+            padding-right: 0;
+        }
+        .quick-pairs-inline::-webkit-scrollbar { display: none; }
+
+        .quick-pair-btn {
+            min-width: 0;
+            background: transparent;
+            color: #8892b0;
+            border: none;
+            border-right: 1px solid #ffffff !important;
+            padding: 0 6px;
+            margin: 0;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            border-radius: 0;
+            white-space: nowrap;
+            text-align: center;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            align-self: stretch;
+            height: auto;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .quick-pair-btn:hover { color: #c8d0e7; }
+        .quick-pair-btn.active {
+            background: transparent;
+            color: #00e5ff;
+            border: none;
+            border-right: 1px solid #ffffff !important;
+        }
+        .quick-pair-btn.active .payout-pct { color: #00e5ff; }
+
+        .payout-pct {
+            display: inline;
+            font-size: 10px;
+            font-weight: 800;
+            color: #0ecb81;
+            margin-top: 0;
+        }
+
+        /* --- Bottom Controls --- */
+        .bottom-controls {
+            display: flex !important;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 2px 5px;
+            background: #000432;
+            border-top: 1px solid #333;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .bottom-controls::-webkit-scrollbar { display: none; }
+
+        .control-item {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0 2px;
+            background: #000432;
+            white-space: nowrap;
+            gap: 2px;
+        }
+        .control-item svg { margin-right: 2px !important; width: 16px !important; height: 16px !important; }
+
+        select, input {
+            background-color: #000432;
+            color: #c8d0e7;
+            border: 1px solid #ffffff;
+            padding: 4px;
+            width: 44px;
+            border-radius: 6px;
+            text-align: center;
+            font-family: inherit;
+            outline: none;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+
+        #conn-status { display: none !important; }
+
+        /* --- Action Buttons --- */
+        .action-btn {
+            border: 1px solid #ffffff;
+            padding: 6px 8px !important;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            margin: 0 2px !important;
+            letter-spacing: 0.05em;
+            background: #000432;
+        }
+        .btn-log { color: #8892b0; }
+        .btn-call { color: #0ecb81; } /* MULTUP */
+        .btn-put { color: #f6465d; }  /* MULTDOWN */
+        .btn-close { color: #ffcc00; border-color: #ffcc00; }
+
+        /* --- Chart Section --- */
+        .chart-section {
+            flex: 1;
+            background-color: #000432;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+            display: flex;
+            flex-direction: row;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+        }
+
+        #canvas-wrapper { width: 100%; height: 100%; position: relative; }
+        #custom-chart { width: 100%; height: 100%; display: block; }
+
+        #loading-text {
+            color: #ffcc00;
+            font-weight: bold;
+            letter-spacing: 2px;
+            z-index: 10;
+            position: absolute;
+            top: 50%;
+            left: 35%;
+            transform: translate(-50%, -50%);
+        }
+
+        #fullscreen-btn { display: none !important; }
+        #zoom-controls { display: none !important; }
+        .zoom-btn {
+            background: rgba(0, 4, 50, 0.85);
+            border: 1px solid #ffffff;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            color: #ffcc00;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+
+        /* --- Open Positions Panel (floating, multiplier-specific) --- */
+        .positions-panel {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 230px;
+            max-height: 46%;
+            overflow-y: auto;
+            background: rgba(0, 4, 50, 0.92);
+            border: 1px solid #ffffff;
+            border-radius: 8px;
+            z-index: 25;
+            font-size: 11px;
+        }
+        .positions-panel::-webkit-scrollbar { width: 4px; }
+        .positions-header {
+            padding: 6px 8px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: #ffcc00;
+            border-bottom: 1px solid #333;
+            font-size: 10px;
+        }
+        .position-row {
+            padding: 6px 8px;
+            border-bottom: 1px solid #1a1e3a;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .position-row .pr-top {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 800;
+        }
+        .position-row .pr-bottom {
+            display: flex;
+            justify-content: space-between;
+            color: #8892b0;
+            font-size: 10px;
+        }
+        .position-row .pr-close {
+            margin-top: 3px;
+            background: transparent;
+            border: 1px solid #ffcc00;
+            color: #ffcc00;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px;
+            cursor: pointer;
+        }
+        .positions-empty {
+            padding: 10px 8px;
+            color: #8892b0;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        /* --- SL/TP + Multiplier trade panel (replaces the old expiry panel) --- */
+        .floating-trade-panel {
+            position: absolute;
+            bottom: 143px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1.4fr;
+            align-items: stretch;
+            background: rgba(0, 4, 50, 0.9);
+            border: 1px solid #ffffff;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            padding: 0 4px;
+            gap: 4px;
+            z-index: 20;
+            width: 98%;
+            max-width: 640px;
+            box-sizing: border-box;
+            overflow: hidden;
+            height: 48px;
+        }
+        .floating-trade-panel input {
+            width: 100%;
+            min-width: 0;
+            height: 100%;
+            background: transparent;
+            border: none;
+            border-right: 1px solid #ffffff !important;
+            color: #c8d0e7;
+            text-align: center;
+            font-weight: 800;
+            outline: none;
+            border-radius: 0;
+            box-sizing: border-box;
+            font-size: 13px;
+            padding: 0 4px;
+        }
+        .floating-trade-panel .action-btn {
+            height: 100%;
+            padding: 0 4px !important;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .floating-trade-panel .quick-pairs-inline { display: contents; }
+        .floating-trade-panel #account-toggle-btn { display: none; }
+        .floating-trade-panel #balance-display {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13px;
+            font-weight: 800;
+            margin-left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 0;
+            height: 100%;
+            padding: 0 6px;
+        }
+
+        .floating-trade-buttons-row {
+            position: absolute;
+            bottom: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(0, 4, 50, 0.9);
+            border: 1px solid #ffffff;
+            border-radius: 0 0 10px 10px;
+            padding: 0 10px;
+            z-index: 20;
+            width: 98%;
+            max-width: 640px;
+            box-sizing: border-box;
+            overflow: hidden;
+            height: 48px;
+        }
+        .floating-trade-buttons-row .action-btn {
+            flex: 1 1 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 0;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+        .floating-trade-buttons-row .action-btn:first-child { border-right: 1px solid #ffffff !important; }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="chart-section">
+            <div id="loading-text">LOADING MARKET DATA...</div>
+            <button id="fullscreen-btn" aria-label="Toggle Fullscreen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></button>
+            <div id="zoom-controls">
+                <button id="zoom-in-btn" class="zoom-btn" aria-label="Zoom In">+</button>
+                <button id="zoom-out-btn" class="zoom-btn" aria-label="Zoom Out">&minus;</button>
+            </div>
+            <div id="canvas-wrapper">
+                <canvas id="custom-chart"></canvas>
+            </div>
+
+            <!-- Live open Multiplier positions -->
+            <div class="positions-panel" id="positionsPanel">
+                <div class="positions-header">OPEN POSITIONS</div>
+                <div id="positionsList"><div class="positions-empty">NO OPEN POSITIONS</div></div>
+            </div>
+        </div>
+
+        <div class="bottom-controls" style="display: flex !important; justify-content: center; align-items: center; padding: 2px 10px; background: #000432; width: 100%; box-sizing: border-box; border-top: 1px solid #ffffff;">
+            <div class="segmented-bar" style="display: flex; align-items: stretch; border: 1px solid #ffffff; border-radius: 3px; overflow: hidden; height: 36px;">
+
+                <div style="display: flex; align-items: center; justify-content: center; padding: 0 12px; border-right: 1px solid #ffffff; background: transparent; cursor: pointer;">
+                    <span id="balance-display" style="color: #ffffff; font-weight: bold; font-size: 13px;">Loading...</span>
+                </div>
+
+                <input type="number" id="trade-amount" value="10" aria-label="Stake" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+
+                <select id="trade-multiplier" aria-label="Multiplier" style="width: 60px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+                    <option value="10">x10</option>
+                    <option value="20">x20</option>
+                    <option value="50">x50</option>
+                    <option value="100" selected>x100</option>
+                    <option value="200">x200</option>
+                    <option value="300">x300</option>
+                    <option value="500">x500</option>
+                    <option value="1000">x1000</option>
+                </select>
+
+                <button id="trade-btn-row2" class="action-btn btn-call" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #0ecb81; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">UP</button>
+
+                <button id="trade-btn-put-row2" class="action-btn btn-put" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #f6465d; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">DOWN</button>
+
+                <div class="quick-pairs-inline" id="quick-pairs-container" style="display: flex; height: 100%;">
+
+                    <button class="quick-pair-btn active" data-val="cryBTCUSD" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #00e5ff; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">BTC <span class="payout-pct" id="payout-cryBTCUSD" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ15V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V15 <span class="payout-pct" id="payout-1HZ15V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ25V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V25 <span class="payout-pct" id="payout-1HZ25V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ30V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V30 <span class="payout-pct" id="payout-1HZ30V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ50V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V50 <span class="payout-pct" id="payout-1HZ50V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ75V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V75 <span class="payout-pct" id="payout-1HZ75V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ90V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V90 <span class="payout-pct" id="payout-1HZ90V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <button class="quick-pair-btn" data-val="1HZ100V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V100 <span class="payout-pct" id="payout-1HZ100V" style="color: inherit; margin-left: 2px;">--</span></button>
+
+                    <input type="number" id="candle-time" value="3" step="1" aria-label="Timeframe (seconds)" style="width: 45px; height: 100%; background: transparent; border: none; color: #c8d0e7; text-align: center; font-weight: 800; font-size: 12px; outline: none; margin: 0; padding: 0 6px; box-sizing: border-box;">
+
+                </div>
+
+            </div>
+
+            <div style="display: none;">
+                <button id="account-toggle-btn">LIVE</button>
+                <span id="conn-status">OFFLINE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Stop Loss / Take Profit panel -->
+    <div class="floating-trade-panel" style="display:none;" id="slTpPanel">
+        <div style="display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#8892b0; border-right:1px solid #fff;">SL/TP</div>
+        <input type="number" id="stop-loss" placeholder="Stop Loss" aria-label="Stop Loss" step="0.01">
+        <input type="number" id="take-profit" placeholder="Take Profit" aria-label="Take Profit" step="0.01">
+        <div style="display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#8892b0; border-right:1px solid #fff;">USD</div>
+        <div style="display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#ffcc00;" id="est-payout-display">--</div>
+    </div>
+
+    <div class="floating-trade-buttons-row" style="display:none;" id="showPositionsRow">
+        <button id="show-trades-btn" class="action-btn btn-log" style="color:#8892b0; font-size:12px;">OPEN POSITIONS</button>
+    </div>
+
+    <div id="tradeModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000432; z-index:2001;"></div>
+    <div id="tradeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90vw; max-width:420px; height:500px; background:#000432; border-radius: 20px; z-index:2002; flex-direction:column; overflow: hidden; border: 1px solid #ffffff;">
+        <div style="padding:15px; background:#000432; color:#ffcc00; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; z-index: 10;">
+            <span>OPEN MULTIPLIER POSITIONS</span>
+            <button id="close-modal-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
+        </div>
+        <div id="tradeList" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:#000432;">
+            <div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO POSITIONS OPEN</div>
+        </div>
+    </div>
+
+    <script>
+        // ================= DERIV MULTIPLIER TRADING (api.derivws.com) =================
+        // Verified against developers.deriv.com/llms/*.md :
+        //   proposal (MULTUP/MULTDOWN + limit_order), buy, sell,
+        //   proposal_open_contract (subscribe-all, gives real bid_price/profit/status)
+        const TOKEN = "pat_a789fd01619ef7c5ba33a117eb939efde1c40ed66754cba6eaaf23fe12a48ab4";
+        const APP_ID = "33VdMoKptaW40mOpanwBg";
+        const API_BASE = "https://api.derivws.com";
+
+        let ws;
+        let currentPair = "cryBTCUSD";
+        let currentAccountType = "real";
+        let tickSubscriptions = {};
+        let payoutSubscriptions = {};
+        let openPositions = {}; // contract_id -> position object (from proposal_open_contract)
+        let zoomLevel = 100;
+        let marketData = {};
+        let serverTimeOffset = 0;
+        let pocSubscribed = false; // proposal_open_contract "subscribe all" active?
+
+        const trackedPairs = [
+            "cryBTCUSD", "cryETHUSD",
+            "1HZ10V", "1HZ15V", "1HZ25V", "1HZ30V", "1HZ50V", "1HZ75V", "1HZ90V", "1HZ100V",
+            "frxXAUUSD", "frxXAGUSD",
+            "frxAUDCAD", "frxAUDCHF", "frxAUDJPY", "frxAUDNZD", "frxAUDUSD",
+            "frxEURAUD", "frxEURCAD", "frxEURCHF", "frxEURGBP", "frxEURJPY", "frxEURNZD", "frxEURUSD",
+            "frxGBPAUD", "frxGBPCAD", "frxGBPCHF", "frxGBPJPY", "frxGBPNZD", "frxGBPUSD",
+            "frxNZDJPY", "frxNZDUSD",
+            "frxUSDCAD", "frxUSDCHF", "frxUSDJPY",
+            "frxXPTUSD"
+        ];
+
+        // UI Elements
+        const candleTimeInput = document.getElementById('candle-time');
+        const balanceDisplay = document.getElementById('balance-display');
+        const connStatus = document.getElementById('conn-status');
+        const loadingText = document.getElementById('loading-text');
+        const multiplierSelect = document.getElementById('trade-multiplier');
+        const stopLossInput = document.getElementById('stop-loss');
+        const takeProfitInput = document.getElementById('take-profit');
+        const estPayoutDisplay = document.getElementById('est-payout-display');
+        const positionsList = document.getElementById('positionsList');
+
+        document.getElementById('slTpPanel').style.display = 'grid';
+        document.getElementById('showPositionsRow').style.display = 'flex';
+
+        function applyZoom() {
+            const el = document.querySelector('.dashboard-container');
+            const factor = zoomLevel / 100;
+            el.style.transform = `scale(${factor})`;
+            el.style.transformOrigin = 'top left';
+            el.style.width = `${100 / factor}%`;
+            el.style.height = `${100 / factor}%`;
+            resizeCanvas();
+        }
+
+        // --- REST handshake to obtain a live WebSocket URL ---
+        async function getRealAccountId(accountType) {
+            const res = await fetch(`${API_BASE}/trading/v1/options/accounts`, {
+                method: 'GET',
+                headers: {
+                    'Deriv-App-ID': APP_ID,
+                    'Authorization': `Bearer ${TOKEN}`
+                }
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                const msg = (json.errors && json.errors[0] && json.errors[0].message) || 'Failed to get account';
+                throw new Error(msg);
+            }
+            const accounts = Array.isArray(json.data) ? json.data : [];
+            const matchedAccount = accounts.find(acct => acct.account_type === accountType);
+            if (!matchedAccount) {
+                throw new Error(`No ${accountType} account found associated with this token.`);
+            }
+            return matchedAccount.account_id;
+        }
+
+        async function getWsUrl(accountId) {
+            const res = await fetch(`${API_BASE}/trading/v1/options/accounts/${accountId}/otp`, {
+                method: 'POST',
+                headers: {
+                    'Deriv-App-ID': APP_ID,
+                    'Authorization': `Bearer ${TOKEN}`
+                }
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                const msg = (json.errors && json.errors[0] && json.errors[0].message) || 'Failed to get OTP';
+                throw new Error(msg);
+            }
+            return json.data.url;
+        }
+
+        // --- CUSTOM HTML5 CANVAS CHART ---
+        let canvas = document.getElementById('custom-chart') || document.querySelector('canvas');
+        let ctx = canvas ? canvas.getContext('2d') : null;
+        let canvasWidth, canvasHeight;
+
+        function resizeCanvas() {
+            if (!canvas) {
+                canvas = document.getElementById('custom-chart') || document.querySelector('canvas');
+                if (canvas) ctx = canvas.getContext('2d');
+            }
+            if (!canvas) return;
+
+            const wrapper = document.getElementById('canvas-wrapper');
+            if (!wrapper) return;
+
+            canvasWidth = wrapper.clientWidth;
+            canvasHeight = wrapper.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvasWidth * dpr;
+            canvas.height = canvasHeight * dpr;
+            ctx.scale(dpr, dpr);
+            canvas.style.width = `${canvasWidth}px`;
+            canvas.style.height = `${canvasHeight}px`;
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            drawChart();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        if (window.ResizeObserver) {
+            const _canvasWrapperEl = document.getElementById('canvas-wrapper');
+            if (_canvasWrapperEl) {
+                new ResizeObserver(function() { resizeCanvas(); }).observe(_canvasWrapperEl);
+            }
+        }
+
+        function drawChart() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            const currentCandles = marketData[currentPair] || [];
+            if (currentCandles.length === 0) {
+                loadingText.style.display = 'block';
+                return;
+            } else {
+                loadingText.style.display = 'none';
+            }
+
+            const yAxisWidth = 48;
+            const xAxisHeight = 25;
+            const chartAreaWidth = canvasWidth * 0.50;
+            const chartHeight = canvasHeight - xAxisHeight;
+            const candleWidth = 6;
+            const candleSpacing = 4;
+            const totalCandleWidth = candleWidth + candleSpacing;
+            const maxVisibleCandles = Math.floor(chartAreaWidth / totalCandleWidth);
+            const visibleCandles = currentCandles.slice(-maxVisibleCandles);
+
+            let minPrice = Infinity;
+            let maxPrice = -Infinity;
+            visibleCandles.forEach(c => {
+                if (c.low < minPrice) minPrice = c.low;
+                if (c.high > maxPrice) maxPrice = c.high;
+            });
+
+            const priceRange = maxPrice - minPrice || 1;
+            const paddedMin = minPrice - (priceRange * 0.02);
+            const paddedMax = maxPrice + (priceRange * 0.02);
+            const paddedRange = paddedMax - paddedMin;
+
+            function getY(price) {
+                return chartHeight - ((price - paddedMin) / paddedRange) * chartHeight;
+            }
+
+            ctx.fillStyle = '#888';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            const dec = paddedMax < 10 ? 5 : (paddedMax < 1000 ? 3 : 2);
+
+            ctx.lineWidth = 1;
+            for (let i = 1; i < 6; i++) {
+                let yLine = (chartHeight / 6) * i;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 0.2;
+                ctx.beginPath();
+                ctx.moveTo(0, yLine);
+                ctx.lineTo(canvasWidth - yAxisWidth, yLine);
+                ctx.stroke();
+                let priceAtLine = paddedMax - (paddedRange * (i / 6));
+                ctx.fillText(priceAtLine.toFixed(dec), canvasWidth - yAxisWidth + 6, yLine);
+            }
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 0.2;
+            const vGridStep = totalCandleWidth * 12;
+            const vGridRightEdge = canvasWidth - yAxisWidth;
+            let vGridX = chartAreaWidth % vGridStep;
+            while (vGridX <= vGridRightEdge) {
+                ctx.beginPath();
+                ctx.moveTo(vGridX, 0);
+                ctx.lineTo(vGridX, chartHeight);
+                ctx.stroke();
+                vGridX += vGridStep;
+            }
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, chartHeight);
+            ctx.lineTo(canvasWidth, chartHeight);
+            ctx.moveTo(canvasWidth - yAxisWidth, 0);
+            ctx.lineTo(canvasWidth - yAxisWidth, chartHeight);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(canvasWidth, 0);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, chartHeight);
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            const lastCandle = currentCandles[currentCandles.length - 1];
+
+            for (let i = 0; i < visibleCandles.length; i++) {
+                const c = visibleCandles[i];
+                const isUp = c.close >= c.open;
+                const color = isUp ? '#0ecb81' : '#f6465d';
+                ctx.fillStyle = color;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                const x = chartAreaWidth - ((visibleCandles.length - i) * totalCandleWidth);
+
+                const yOpen = getY(c.open);
+                const yClose = getY(c.close);
+                const yHigh = getY(c.high);
+                const yLow = getY(c.low);
+
+                const bodyTop = Math.min(yOpen, yClose);
+                const bodyBottom = Math.max(yOpen, yClose);
+                const bodyHeight = Math.max(1, bodyBottom - bodyTop);
+
+                ctx.beginPath();
+                ctx.moveTo(x + candleWidth / 2, yHigh);
+                ctx.lineTo(x + candleWidth / 2, yLow);
+                ctx.stroke();
+
+                ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
+
+                if (i % 12 === 0 || i === visibleCandles.length - 1) {
+                    if (i === visibleCandles.length - 1) ctx.textAlign = 'right';
+                    else ctx.textAlign = 'center';
+
+                    const date = new Date(c.time * 1000);
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const mins = date.getMinutes().toString().padStart(2, '0');
+                    const secs = date.getSeconds().toString().padStart(2, '0');
+
+                    ctx.fillStyle = '#888';
+                    ctx.fillText(`${hours}:${mins}:${secs}`, x + candleWidth / 2, chartHeight + 6);
+                }
+            }
+
+            // --- DRAW ENTRY LINES FOR OPEN MULTIPLIER POSITIONS ON THIS SYMBOL ---
+            const openForSymbol = Object.values(openPositions).filter(p => p.underlying_symbol === currentPair && p.status === 'open');
+            if (openForSymbol.length > 0 && lastCandle) {
+                const lastCandleX = chartAreaWidth - totalCandleWidth;
+                const lastCandleCenterX = lastCandleX + (candleWidth / 2);
+
+                openForSymbol.forEach(p => {
+                    if (p.entry_spot == null) return;
+                    const color = p.contract_type === 'MULTUP' ? '#0ecb81' : '#f6465d';
+                    const entryY = getY(Number(p.entry_spot));
+                    const clampedEntryY = Math.max(0, Math.min(chartHeight, entryY));
+
+                    ctx.strokeStyle = color;
+                    ctx.setLineDash([4, 3]);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(0, clampedEntryY);
+                    ctx.lineTo(canvasWidth - yAxisWidth, clampedEntryY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.fillStyle = color;
+                    ctx.font = 'bold 9px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(`x${p.multiplier} ENTRY`, 4, clampedEntryY - 2);
+                });
+            }
+
+            // --- DRAW CURRENT PRICE LABEL (no countdown timer - multiplier has no expiry) ---
+            const currentPrice = lastCandle.close;
+            const currentY = getY(currentPrice);
+            const isUp = currentPrice >= lastCandle.open;
+            const boxColor = isUp ? '#0ecb81' : '#f6465d';
+
+            ctx.strokeStyle = boxColor;
+            ctx.setLineDash([2, 4]);
+            ctx.beginPath();
+            ctx.moveTo(0, currentY);
+            ctx.lineTo(canvasWidth - yAxisWidth, currentY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const labelHeight = 22;
+            const labelY = currentY - labelHeight / 2;
+
+            ctx.fillStyle = boxColor;
+            ctx.fillRect(canvasWidth - yAxisWidth, labelY, yAxisWidth, labelHeight);
+
+            ctx.beginPath();
+            ctx.moveTo(canvasWidth - yAxisWidth, currentY);
+            ctx.lineTo(canvasWidth - yAxisWidth + 5, currentY - 5);
+            ctx.lineTo(canvasWidth - yAxisWidth + 5, currentY + 5);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(currentPrice.toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, currentY);
+        }
+
+        // --- WEBSOCKET ENGINE ---
+        async function connect() {
+            connStatus.innerText = 'CONNECTING';
+            connStatus.style.background = '#ffcc00';
+
+            let wsUrl;
+            try {
+                const accountId = await getRealAccountId(currentAccountType);
+                wsUrl = await getWsUrl(accountId);
+            } catch (err) {
+                console.error("Auth handshake failed:", err);
+                alert("⚠️ Deriv Auth Error: " + err.message);
+                connStatus.innerText = 'OFFLINE';
+                connStatus.style.background = '#f6465d';
+                setTimeout(connect, 5000);
+                return;
+            }
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                connStatus.innerText = 'ONLINE';
+                connStatus.style.background = '#0ecb81';
+                ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+                resizeCanvas();
+                fetchPairData(currentPair);
+                fetchPayouts();
+                subscribeAllOpenContracts();
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+
+                if (data.error) {
+                    console.error("API Error:", data.error.message);
+
+                    if (data.error.code === 'AlreadySubscribed' || data.error.message.includes('already subscribed')) {
+                        return;
+                    }
+                    if (data.error.code === 'RateLimit' || data.error.message.includes('rate limit')) {
+                        console.warn("Deriv API Rate Limit hit - request ignored.");
+                        return;
+                    }
+
+                    var _isProposalReq = data.echo_req && data.echo_req.proposal === 1;
+                    if (_isProposalReq) {
+                        console.warn("Proposal unavailable for " + data.echo_req.underlying_symbol + ": " + data.error.message);
+                        return;
+                    }
+                    if (data.error.code === 'InvalidToken' || data.error.code === 'AuthorizationRequired') {
+                        alert("⚠️ API ERROR: Your session is no longer valid.\n\nThe page will attempt to reconnect automatically.");
+                    } else if (data.error.code === 'InvalidContractParameters') {
+                        alert("⚠️ PARAMETER ERROR: This multiplier is not available for this symbol.\n\nTry a lower multiplier or a different symbol.");
+                    } else {
+                        alert("⚠️ Deriv API Error: " + data.error.message);
+                    }
+                    return;
+                }
+
+                if (data.balance) {
+                    balanceDisplay.innerText = `$${data.balance.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                    balanceDisplay.style.color = currentAccountType === 'real' ? '#0ecb81' : '#ffcc00';
+                }
+
+                if (data.history) {
+                    const symbol = data.echo_req.ticks_history;
+                    processHistory(symbol, data.history.times, data.history.prices);
+                    if (symbol === currentPair) {
+                        loadingText.style.display = 'none';
+                        drawChart();
+                    }
+                }
+
+                if (data.tick) {
+                    const symbol = data.tick.symbol;
+                    tickSubscriptions[symbol] = data.tick.id;
+                    processLiveTick(symbol, data.tick.epoch, data.tick.quote);
+                }
+
+                // Multiplier price/payout proposal (per-symbol quick-pair badge)
+                if (data.proposal) {
+                    const symbol = data.echo_req.underlying_symbol;
+                    payoutSubscriptions[symbol] = data.proposal.id;
+                    const span = document.getElementById(`payout-${symbol}`);
+                    if (span) {
+                        // For multipliers there's no fixed payout % - show the ask price
+                        // (what it costs to open) as the quick reference instead.
+                        const ask = Number(data.proposal.ask_price);
+                        span.innerText = isFinite(ask) ? `$${ask.toFixed(2)}` : '--';
+                    }
+                    if (symbol === currentPair) {
+                        const ask = Number(data.proposal.ask_price);
+                        estPayoutDisplay.innerText = isFinite(ask) ? `Cost: $${ask.toFixed(2)}` : '--';
+                    }
+                }
+
+                // Trade opened
+                if (data.buy) {
+                    console.log(`✅ Multiplier position opened: contract_id ${data.buy.contract_id} | buy_price $${data.buy.buy_price}`);
+                    // Real state (entry_spot, profit, status) comes from proposal_open_contract,
+                    // which we're already subscribed to for all contracts.
+                }
+
+                // Trade closed manually via sell
+                if (data.sell) {
+                    console.log(`Position closed: contract_id ${data.sell.contract_id} | sold for $${data.sell.sold_for}`);
+                }
+
+                // Real-time open position state (multiplier P&L, status, entry spot, etc.)
+                if (data.proposal_open_contract) {
+                    const c = data.proposal_open_contract;
+                    if (c.contract_id) {
+                        if (c.is_sold || c.status === 'sold' || c.status === 'won' || c.status === 'lost') {
+                            delete openPositions[c.contract_id];
+                        } else {
+                            openPositions[c.contract_id] = c;
+                        }
+                        updatePositionsUI();
+                        if (c.underlying_symbol === currentPair) drawChart();
+                    }
+                }
+            };
+
+            ws.onclose = () => {
+                connStatus.innerText = 'OFFLINE';
+                connStatus.style.background = '#f6465d';
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = (e) => {
+                console.error("WebSocket error:", e);
+            };
+        }
+
+        // --- Subscribe once to ALL open contracts (no contract_id = stream everything) ---
+        function subscribeAllOpenContracts() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            ws.send(JSON.stringify({ proposal_open_contract: 1, subscribe: 1 }));
+            pocSubscribed = true;
+        }
+
+        // --- OPEN POSITIONS UI (floating panel + modal) ---
+        function updatePositionsUI() {
+            const positions = Object.values(openPositions);
+
+            if (positions.length === 0) {
+                positionsList.innerHTML = '<div class="positions-empty">NO OPEN POSITIONS</div>';
+            } else {
+                let html = '';
+                positions.forEach(p => {
+                    const profit = Number(p.profit) || 0;
+                    const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                    const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                    html += `
+                        <div class="position-row">
+                            <div class="pr-top">
+                                <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
+                                <span style="color:${color};">$${profit.toFixed(2)}</span>
+                            </div>
+                            <div class="pr-bottom">
+                                <span>Stake $${Number(p.buy_price).toFixed(2)}</span>
+                                <span>Bid $${Number(p.bid_price).toFixed(2)}</span>
+                            </div>
+                            <button class="pr-close" data-cid="${p.contract_id}">CLOSE</button>
+                        </div>`;
+                });
+                positionsList.innerHTML = html;
+                positionsList.querySelectorAll('.pr-close').forEach(btn => {
+                    btn.addEventListener('click', () => closePosition(Number(btn.getAttribute('data-cid'))));
+                });
+            }
+
+            updateTradeModalUI(positions);
+        }
+
+        function updateTradeModalUI(positions) {
+            const list = document.getElementById('tradeList');
+            if (!positions || positions.length === 0) {
+                list.innerHTML = '<div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO POSITIONS OPEN</div>';
+                return;
+            }
+            let html = '';
+            positions.forEach(p => {
+                const profit = Number(p.profit) || 0;
+                const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                html += `
+                    <div style="display:flex; justify-content:space-between; background:#000432; padding:12px; border-radius:10px; border-left:3px solid ${color}; margin-bottom:10px;">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <span style="font-weight:bold; color:white; font-size:12px;">${p.underlying_symbol} ${dirLabel} x${p.multiplier} <span style="color:#888; font-size:10px;">#${p.contract_id}</span></span>
+                            <span style="color:#aaa; font-size:10px;">STAKE: $${Number(p.buy_price).toFixed(2)}</span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px; text-align:right;">
+                            <span style="font-weight:bold; font-size:12px; color:${color};">$${profit.toFixed(2)}</span>
+                            <button class="pr-close" data-cid="${p.contract_id}" style="background:transparent;border:1px solid #ffcc00;color:#ffcc00;border-radius:4px;font-size:10px;font-weight:800;padding:3px 8px;cursor:pointer;">CLOSE</button>
+                        </div>
+                    </div>`;
+            });
+            list.innerHTML = html;
+            list.querySelectorAll('.pr-close').forEach(btn => {
+                btn.addEventListener('click', () => closePosition(Number(btn.getAttribute('data-cid'))));
+            });
+        }
+
+        document.getElementById('show-trades-btn').addEventListener('click', () => {
+            document.getElementById('tradeModal').style.display = 'flex';
+            document.getElementById('tradeModalOverlay').style.display = 'block';
+            updateTradeModalUI(Object.values(openPositions));
+        });
+        document.getElementById('close-modal-btn').addEventListener('click', () => {
+            document.getElementById('tradeModal').style.display = 'none';
+            document.getElementById('tradeModalOverlay').style.display = 'none';
+        });
+        document.getElementById('tradeModalOverlay').addEventListener('click', () => {
+            document.getElementById('tradeModal').style.display = 'none';
+            document.getElementById('tradeModalOverlay').style.display = 'none';
+        });
+
+        // --- CLOSE A POSITION (sell at market) ---
+        function closePosition(contractId) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert("Not connected.");
+                return;
+            }
+            ws.send(JSON.stringify({ sell: contractId, price: 0 }));
+        }
+
+        // --- CHART DATA PROCESSORS ---
+        function fetchPairData(symbol) {
+            marketData[symbol] = [];
+
+            if (tickSubscriptions[symbol]) {
+                ws.send(JSON.stringify({ forget: tickSubscriptions[symbol] }));
+                delete tickSubscriptions[symbol];
+            }
+
+            ws.send(JSON.stringify({
+                ticks_history: symbol,
+                end: "latest",
+                count: 2500,
+                style: "ticks",
+                subscribe: 1
+            }));
+        }
+
+        // --- Multiplier proposal (cost/price stream) per tracked pair ---
+        function fetchPayouts() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            const stake = parseFloat(document.getElementById('trade-amount').value) || 10;
+            const multiplier = Number(multiplierSelect.value) || 100;
+
+            trackedPairs.forEach(symbol => {
+                if (payoutSubscriptions[symbol]) {
+                    ws.send(JSON.stringify({ forget: payoutSubscriptions[symbol] }));
+                    delete payoutSubscriptions[symbol];
+                }
+                ws.send(JSON.stringify({
+                    proposal: 1,
+                    subscribe: 1,
+                    amount: Number(stake),
+                    basis: "stake",
+                    contract_type: "MULTUP",
+                    currency: "USD",
+                    multiplier: multiplier,
+                    underlying_symbol: symbol
+                }));
+            });
+        }
+
+        function switchPairView(newPair) {
+            currentPair = newPair;
+            if (!marketData[newPair] || marketData[newPair].length === 0) {
+                loadingText.style.display = 'block';
+                if (ws && ws.readyState === WebSocket.OPEN) fetchPairData(newPair);
+            } else {
+                drawChart();
+            }
+        }
+
+        function getCandleDuration() {
+            return (parseInt(candleTimeInput.value) || 8);
+        }
+
+        function processHistory(symbol, times, prices) {
+            const duration = getCandleDuration();
+
+            if (symbol === currentPair && times.length > 0) {
+                serverTimeOffset = times[times.length - 1] - Math.floor(Date.now() / 1000);
+            }
+
+            let candleMap = new Map();
+
+            for (let i = 0; i < times.length; i++) {
+                const group = Math.floor(times[i] / duration) * duration;
+                const p = prices[i];
+
+                if (!candleMap.has(group)) {
+                    candleMap.set(group, { time: group, open: p, high: p, low: p, close: p });
+                } else {
+                    let c = candleMap.get(group);
+                    c.high = Math.max(c.high, p);
+                    c.low = Math.min(c.low, p);
+                    c.close = p;
+                }
+            }
+
+            marketData[symbol] = Array.from(candleMap.values()).sort((a, b) => a.time - b.time);
+        }
+
+        function processLiveTick(symbol, epoch, price) {
+            if (symbol === currentPair) {
+                serverTimeOffset = epoch - Math.floor(Date.now() / 1000);
+            }
+
+            let candles = marketData[symbol];
+            if (!candles || candles.length === 0) return;
+
+            const duration = getCandleDuration();
+            const group = Math.floor(epoch / duration) * duration;
+            let lastCandle = candles[candles.length - 1];
+
+            if (group < lastCandle.time) return;
+
+            if (group === lastCandle.time) {
+                lastCandle.high = Math.max(lastCandle.high, price);
+                lastCandle.low = Math.min(lastCandle.low, price);
+                lastCandle.close = price;
+            } else {
+                const newCandle = { time: group, open: price, high: price, low: price, close: price };
+                candles.push(newCandle);
+                if (candles.length > 2500) candles.shift();
+            }
+
+            if (symbol === currentPair) drawChart();
+        }
+
+        candleTimeInput.addEventListener('change', () => {
+            loadingText.style.display = 'block';
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                marketData = {};
+                fetchPairData(currentPair);
+            }
+        });
+
+        document.getElementById('trade-amount').addEventListener('change', fetchPayouts);
+        multiplierSelect.addEventListener('change', fetchPayouts);
+
+        // --- EXECUTE MULTIPLIER TRADE (MULTUP / MULTDOWN) ---
+        function executeTrade(type) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert("Please wait, connecting to server...");
+                return;
+            }
+            const stake = parseFloat(document.getElementById('trade-amount').value) || 10;
+            const multiplier = Number(multiplierSelect.value) || 100;
+            const sl = parseFloat(stopLossInput.value);
+            const tp = parseFloat(takeProfitInput.value);
+
+            const parameters = {
+                amount: Number(stake),
+                basis: "stake",
+                contract_type: type, // MULTUP or MULTDOWN
+                currency: "USD",
+                multiplier: multiplier,
+                underlying_symbol: currentPair
+            };
+
+            const limitOrder = {};
+            if (!isNaN(sl) && sl > 0) limitOrder.stop_loss = sl;
+            if (!isNaN(tp) && tp > 0) limitOrder.take_profit = tp;
+            if (Object.keys(limitOrder).length > 0) parameters.limit_order = limitOrder;
+
+            const tradePayload = {
+                buy: "1",
+                price: Number(stake), // max price willing to pay to open (stake basis)
+                parameters: parameters
+            };
+
+            ws.send(JSON.stringify(tradePayload));
+        }
+
+        document.getElementById('trade-btn-row2').addEventListener('click', () => executeTrade("MULTUP"));
+        document.getElementById('trade-btn-put-row2').addEventListener('click', () => executeTrade("MULTDOWN"));
+
+        const quickPairBtns = document.querySelectorAll('.quick-pair-btn');
+        showOnlyPair(currentPair);
+
+        window.addEventListener('message', (event) => {
+            const raw = event.data?.trinityOS_pair;
+            if (!raw || typeof raw !== 'string') return;
+            console.log("📺 TRM Live TV Received Signal:", raw);
+            const pair = resolveTrackedPair(raw);
+            if (!pair) return;
+            receiveTrinityPair(pair);
+        });
+
+        function resolveTrackedPair(raw) {
+            if (trackedPairs.includes(raw)) return raw;
+            var match = trackedPairs.find(function(p) {
+                return p.replace(/^(frx|cry|1HZ)/i, '').toUpperCase() === raw.toUpperCase();
+            });
+            return match || null;
+        }
+
+        function receiveTrinityPair(pair) {
+            if (!trackedPairs.includes(pair)) trackedPairs.push(pair);
+            ensureQuickPairButton(pair);
+            switchPairView(pair);
+            syncQuickBars(pair);
+            showOnlyPair(pair);
+            if (ws && ws.readyState === WebSocket.OPEN) subscribeSinglePayout(pair);
+        }
+
+        // ANDROID CLIPBOARD BRIDGE — same as before, kept for native split-pane WebViews.
+        let lastAndroidClipPair = null;
+        if (window.AndroidClipboard) {
+            setInterval(() => {
+                const raw = (window.AndroidClipboard.read() || '').trim();
+                if (!raw || raw === lastAndroidClipPair) return;
+                lastAndroidClipPair = raw;
+                const pair = resolveTrackedPair(raw);
+                if (pair) receiveTrinityPair(pair);
+            }, 400);
+        }
+
+        function showOnlyPair(pair) {
+            document.querySelectorAll('.quick-pair-btn').forEach(btn => {
+                btn.style.display = (btn.getAttribute('data-val') === pair) ? 'flex' : 'none';
+            });
+        }
+
+        function subscribeSinglePayout(symbol) {
+            const stake = parseFloat(document.getElementById('trade-amount').value) || 10;
+            const multiplier = Number(multiplierSelect.value) || 100;
+            if (payoutSubscriptions[symbol]) {
+                ws.send(JSON.stringify({ forget: payoutSubscriptions[symbol] }));
+                delete payoutSubscriptions[symbol];
+            }
+            ws.send(JSON.stringify({
+                proposal: 1, subscribe: 1, amount: Number(stake), basis: "stake",
+                contract_type: "MULTUP", currency: "USD",
+                multiplier: multiplier, underlying_symbol: symbol
+            }));
+        }
+
+        function ensureQuickPairButton(pair) {
+            const container = document.getElementById('quick-pairs-container');
+            if (!container || document.querySelector(`.quick-pair-btn[data-val="${pair}"]`)) return;
+            const label = pair.replace(/^(frx|cry|1HZ)/i, '');
+            const btn = document.createElement('button');
+            btn.className = 'quick-pair-btn';
+            btn.setAttribute('data-val', pair);
+            btn.style.cssText = 'border:none;border-right:1px solid #ffffff !important;border-radius:0;background:transparent;color:#c8d0e7;padding:0 12px;margin:0;height:100%;font-size:12px;font-weight:bold;';
+            btn.innerHTML = `${label} <span class="payout-pct" id="payout-${pair}">--</span>`;
+            btn.addEventListener('click', () => { syncQuickBars(pair); switchPairView(pair); });
+            const timeInput = document.getElementById('candle-time');
+            container.insertBefore(btn, timeInput);
+        }
+
+        function syncQuickBars(selectedPair) {
+            document.querySelectorAll('.quick-pair-btn').forEach(btn => {
+                const isSel = btn.getAttribute('data-val') === selectedPair;
+                btn.classList.toggle('active', isSel);
+                btn.style.color = isSel ? '#00e5ff' : '#c8d0e7';
+                const payoutSpan = btn.querySelector('.payout-pct');
+                if (payoutSpan) payoutSpan.style.color = isSel ? '#00e5ff' : 'inherit';
+            });
+        }
+
+        quickPairBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const newPair = e.target.getAttribute('data-val');
+                syncQuickBars(newPair);
+                switchPairView(newPair);
+            });
+        });
+
+        setInterval(() => {
+            if (marketData[currentPair] && marketData[currentPair].length > 0) drawChart();
+        }, 1000);
+
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const dashboardEl = document.querySelector('.dashboard-container');
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (dashboardEl.requestFullscreen) {
+                dashboardEl.requestFullscreen();
+            } else if (dashboardEl.webkitRequestFullscreen) {
+                dashboardEl.webkitRequestFullscreen();
+            }
+            fullscreenBtn.style.display = 'none';
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                fullscreenBtn.style.display = 'flex';
+            }
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (!document.webkitFullscreenElement) {
+                fullscreenBtn.style.display = 'flex';
+            }
+        });
+
+        document.getElementById('zoom-in-btn').addEventListener('click', () => {
+            zoomLevel = Math.min(zoomLevel + 1, 300);
+            applyZoom();
+        });
+        document.getElementById('zoom-out-btn').addEventListener('click', () => {
+            zoomLevel = Math.max(zoomLevel - 1, 20);
+            applyZoom();
+        });
+
+        const accountToggleBtn = document.getElementById('account-toggle-btn');
+        function updateAccountToggleUI() {
+            if (currentAccountType === 'real') {
+                accountToggleBtn.innerText = 'LIVE';
+                balanceDisplay.style.color = '#0ecb81';
+            } else {
+                accountToggleBtn.innerText = 'DEMO';
+                balanceDisplay.style.color = '#ffcc00';
+            }
+        }
+        balanceDisplay.style.cursor = 'pointer';
+        balanceDisplay.addEventListener('click', () => {
+            currentAccountType = currentAccountType === 'real' ? 'demo' : 'real';
+            updateAccountToggleUI();
+            balanceDisplay.innerText = 'Loading...';
+            tickSubscriptions = {};
+            payoutSubscriptions = {};
+            openPositions = {};
+            marketData = {};
+            pocSubscribed = false;
+            if (ws) {
+                ws.onclose = null;
+                ws.close();
+            }
+            connect();
+        });
+        updateAccountToggleUI();
+
+        connect();
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
