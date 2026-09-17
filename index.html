@@ -221,13 +221,14 @@
                             box-sizing: border-box;
                         }
                         #positionsList, #closedList {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 8px;
-                            padding: 6px 8px;
-                            overflow-y: auto;
-                            min-height: 0;
-                        }
+                                                    display: flex;
+                                                    flex-direction: column;
+                                                    gap: 8px;
+                                                    padding: 6px 8px;
+                                                    overflow-y: auto;
+                                                    min-height: 0;
+                                                }
+                                                #positionsList { display: none !important; }
                         .pos-track {
                             display: flex;
                             flex-direction: row;
@@ -372,15 +373,12 @@
                 <input type="number" id="trade-amount" value="10" aria-label="Stake" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
 
                 <select id="trade-multiplier" aria-label="Multiplier" style="width: 60px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
-                    <option value="10">x10</option>
-                    <option value="20">x20</option>
-                    <option value="50">x50</option>
-                    <option value="100" selected>x100</option>
-                    <option value="200">x200</option>
-                    <option value="300">x300</option>
-                    <option value="500">x500</option>
-                    <option value="1000">x1000</option>
-                </select>
+                                    <option value="100" selected>x100</option>
+                                    <option value="200">x200</option>
+                                    <option value="300">x300</option>
+                                    <option value="500">x500</option>
+                                    <option value="800">x800</option>
+                                </select>
 
                 <button id="trade-btn-row2" class="action-btn btn-call" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #0ecb81; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">UP</button>
 
@@ -453,15 +451,26 @@
     </div>
 
     <div id="tradeModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000432; z-index:2001;"></div>
-    <div id="tradeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90vw; max-width:420px; height:500px; background:#000432; border-radius: 20px; z-index:2002; flex-direction:column; overflow: hidden; border: 1px solid #ffffff;">
-        <div style="padding:15px; background:#000432; color:#ffcc00; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; z-index: 10;">
-            <span>OPEN MULTIPLIER POSITIONS</span>
-            <button id="close-modal-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
+        <div id="tradeModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90vw; max-width:420px; height:500px; background:#000432; border-radius: 20px; z-index:2002; flex-direction:column; overflow: hidden; border: 1px solid #ffffff;">
+            <div style="padding:15px; background:#000432; color:#ffcc00; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; z-index: 10;">
+                <span>OPEN MULTIPLIER POSITIONS</span>
+                <button id="close-modal-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
+            </div>
+            <div id="tradeList" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:#000432;">
+                <div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO POSITIONS OPEN</div>
+            </div>
         </div>
-        <div id="tradeList" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:#000432;">
-            <div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO POSITIONS OPEN</div>
+    
+        <div id="closedModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000432; z-index:2003;"></div>
+        <div id="closedModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90vw; max-width:420px; height:500px; background:#000432; border-radius: 20px; z-index:2004; flex-direction:column; overflow: hidden; border: 1px solid #ffffff;">
+            <div style="padding:15px; background:#000432; color:#ffcc00; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; z-index: 10;">
+                <span>CLOSED POSITIONS</span>
+                <button id="close-closed-modal-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
+            </div>
+            <div id="closedTradeList" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:#000432;">
+                <div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO CLOSED POSITIONS</div>
+            </div>
         </div>
-    </div>
 
     <script>
         // ================= DERIV MULTIPLIER TRADING (api.derivws.com) =================
@@ -484,6 +493,7 @@
         let marketData = {};
         let serverTimeOffset = 0;
         let pocSubscribed = false; // proposal_open_contract "subscribe all" active?
+                let liveCloseBtnRect = null; // {x,y,w,h,contractId} for the CLOSE hit-box on the live price line
 
         const trackedPairs = [
             "cryBTCUSD", "cryETHUSD",
@@ -588,12 +598,31 @@
         }
 
         window.addEventListener('resize', resizeCanvas);
-        if (window.ResizeObserver) {
-            const _canvasWrapperEl = document.getElementById('canvas-wrapper');
-            if (_canvasWrapperEl) {
-                new ResizeObserver(function() { resizeCanvas(); }).observe(_canvasWrapperEl);
-            }
-        }
+                if (window.ResizeObserver) {
+                    const _canvasWrapperEl = document.getElementById('canvas-wrapper');
+                    if (_canvasWrapperEl) {
+                        new ResizeObserver(function() { resizeCanvas(); }).observe(_canvasWrapperEl);
+                    }
+                }
+        
+                canvas.addEventListener('click', (e) => {
+                    if (!liveCloseBtnRect) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const clickY = e.clientY - rect.top;
+                    const b = liveCloseBtnRect;
+                    if (clickX >= b.x && clickX <= b.x + b.w && clickY >= b.y && clickY <= b.y + b.h) {
+                        closePosition(b.contractId);
+                    }
+                });
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!liveCloseBtnRect) { canvas.style.cursor = 'default'; return; }
+                    const rect = canvas.getBoundingClientRect();
+                    const mx = e.clientX - rect.left;
+                    const my = e.clientY - rect.top;
+                    const b = liveCloseBtnRect;
+                    canvas.style.cursor = (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) ? 'pointer' : 'default';
+                });
 
         function drawChart() {
                     if (!ctx) return;
@@ -758,20 +787,20 @@
                                                                                         ctx.setLineDash([]);
                                                     
                                                                                         ctx.fillStyle = entryColor;
-                                                                                        ctx.font = 'bold 9px sans-serif';
-                                                                                        ctx.textAlign = 'right';
-                                                                                        ctx.textBaseline = 'bottom';
-                                                                                        ctx.fillText(`x${p.multiplier} ENTRY`, canvasWidth - yAxisWidth - 4, clampedEntryY - 2);
-                                                    
-                                                                                        const entryBoxHeight = 18;
-                                                                                        const entryBoxY = clampedEntryY - entryBoxHeight / 2;
-                                                                                        ctx.fillStyle = entryColor;
-                                                                                        ctx.fillRect(canvasWidth - yAxisWidth, entryBoxY, yAxisWidth, entryBoxHeight);
-                                                                                        ctx.fillStyle = '#000432';
-                                                                                        ctx.textAlign = 'center';
-                                                                                        ctx.font = 'bold 10px sans-serif';
-                                                                                        ctx.textBaseline = 'middle';
-                                                                                        ctx.fillText(Number(p.entry_spot).toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, clampedEntryY);
+                                                                                                                                                                                ctx.font = 'bold 12px sans-serif';
+                                                                                                                                                                                ctx.textAlign = 'right';
+                                                                                                                                                                                ctx.textBaseline = 'bottom';
+                                                                                                                                                                                ctx.fillText(`x${p.multiplier} ENTRY`, canvasWidth - yAxisWidth - 4, clampedEntryY - 2);
+                                                                                                                                            
+                                                                                                                                                                                const entryBoxHeight = 22;
+                                                                                                                                                                                const entryBoxY = clampedEntryY - entryBoxHeight / 2;
+                                                                                                                                                                                ctx.fillStyle = entryColor;
+                                                                                                                                                                                ctx.fillRect(canvasWidth - yAxisWidth, entryBoxY, yAxisWidth, entryBoxHeight);
+                                                                                                                                                                                ctx.fillStyle = '#000432';
+                                                                                                                                                                                ctx.textAlign = 'center';
+                                                                                                                                                                                ctx.font = 'bold 13px sans-serif';
+                                                                                                                                                                                ctx.textBaseline = 'middle';
+                                                                                                                                                                                ctx.fillText(Number(p.entry_spot).toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, clampedEntryY);
                                                                                         
                                                                                                             const { breakeven } = computeDerivedMetrics(p);
                                                                                                             if (breakeven != null && isFinite(breakeven)) {
@@ -789,20 +818,20 @@
                                                                                                                 ctx.setLineDash([]);
                                                     
                                                                                                                 ctx.fillStyle = beColor;
-                                                                                                                ctx.font = 'bold 9px sans-serif';
-                                                                                                                ctx.textAlign = 'right';
-                                                                                                                ctx.textBaseline = 'top';
-                                                                                                                ctx.fillText(`x${p.multiplier} BREAKEVEN`, canvasWidth - yAxisWidth - 4, clampedBeY + 2);
-                                                    
-                                                                                                                const beBoxHeight = 18;
-                                                                                                                const beBoxY = clampedBeY - beBoxHeight / 2;
-                                                                                                                ctx.fillStyle = beColor;
-                                                                                                                ctx.fillRect(canvasWidth - yAxisWidth, beBoxY, yAxisWidth, beBoxHeight);
-                                                                                                                ctx.fillStyle = '#000432';
-                                                                                                                ctx.textAlign = 'center';
-                                                                                                                ctx.font = 'bold 10px sans-serif';
-                                                                                                                ctx.textBaseline = 'middle';
-                                                                                                                ctx.fillText(breakeven.toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, clampedBeY);
+                                                                                                                                                                                                                                                                                                                                                ctx.font = 'bold 12px sans-serif';
+                                                                                                                                                                                                                                                                                                                                                ctx.textAlign = 'right';
+                                                                                                                                                                                                                                                                                                                                                ctx.textBaseline = 'top';
+                                                                                                                                                                                                                                                                                                                                                ctx.fillText(`Fee Coverd [ $${Number(p.commission || 0).toFixed(2)} ]`, canvasWidth - yAxisWidth - 4, clampedBeY + 2);
+                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                const beBoxHeight = 22;
+                                                                                                                                                                                                                                                                                                                                                const beBoxY = clampedBeY - beBoxHeight / 2;
+                                                                                                                                                                                                                                                                                                                                                ctx.fillStyle = beColor;
+                                                                                                                                                                                                                                                                                                                                                ctx.fillRect(canvasWidth - yAxisWidth, beBoxY, yAxisWidth, beBoxHeight);
+                                                                                                                                                                                                                                                                                                                                                ctx.fillStyle = '#000432';
+                                                                                                                                                                                                                                                                                                                                                ctx.textAlign = 'center';
+                                                                                                                                                                                                                                                                                                                                                ctx.font = 'bold 13px sans-serif';
+                                                                                                                                                                                                                                                                                                                                                ctx.textBaseline = 'middle';
+                                                                                                                                                                                                                                                                                                                                                ctx.fillText(breakeven.toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, clampedBeY);
                                                                                                             }
                                                                                                         });
             }
@@ -821,44 +850,69 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
             
-                        ctx.font = 'bold 9px sans-serif';
-                                                            ctx.textAlign = 'right';
-                                                            ctx.textBaseline = 'bottom';
-                                                            const openPositionsArr = Object.values(positions).filter(p => p.underlying_symbol === currentPair && isPositionOpen(p));
-                                                                                                if (openPositionsArr.length > 0) {
-                                                                                                    const openStake = openPositionsArr.reduce((s, p) => s + (Number(p.buy_price) || 0), 0);
-                                                                                                    const openPL = openPositionsArr.reduce((s, p) => s + (Number(p.profit) || 0), 0);
-                                                                                                    const latestPos = openPositionsArr.reduce((a, b) => (b.date_start || 0) > (a.date_start || 0) ? b : a);
-                                                                                                    const forecastLabel = latestPos.contract_type === 'MULTUP' ? 'BUY' : 'SELL';
-                                                                                                    const forecastColor = latestPos.contract_type === 'MULTUP' ? '#0ecb81' : '#f6465d';
-                                                                                                    ctx.fillStyle = openPL >= 0 ? '#0ecb81' : '#f6465d';
-                                                                                                    ctx.fillStyle = '#00e5ff';
-                                                                                                    ctx.fillText(`x${latestPos.multiplier}`, canvasWidth - yAxisWidth - 4, currentY - 35);
-                                                                                                    ctx.fillStyle = forecastColor;
-                                                                                                    ctx.fillText(forecastLabel, canvasWidth - yAxisWidth - 4, currentY - 24);
-                                                                                                    ctx.fillStyle = openPL >= 0 ? '#0ecb81' : '#f6465d';
-                                                                                                    ctx.fillText(`$${(openStake + openPL).toFixed(2)} [ $${openPL.toFixed(2)}]`, canvasWidth - yAxisWidth - 4, currentY - 13);
-                                                                                                }
-                                                            ctx.fillStyle = boxColor;
-                                                            ctx.fillText('LIVE', canvasWidth - yAxisWidth - 4, currentY - 2);
-                                                
-                                                            const labelHeight = 22;
-                                    const labelY = currentY - labelHeight / 2;
-
-            ctx.fillStyle = boxColor;
-            ctx.fillRect(canvasWidth - yAxisWidth, labelY, yAxisWidth, labelHeight);
-
-            ctx.beginPath();
-            ctx.moveTo(canvasWidth - yAxisWidth, currentY);
-            ctx.lineTo(canvasWidth - yAxisWidth + 5, currentY - 5);
-            ctx.lineTo(canvasWidth - yAxisWidth + 5, currentY + 5);
-            ctx.fill();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 11px sans-serif';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(currentPrice.toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, currentY);
+                        ctx.font = 'bold 12px sans-serif';
+                                                                                                                                                            ctx.textAlign = 'right';
+                                                                                                                                                            ctx.textBaseline = 'bottom';
+                                                                                                                                                            const openPositionsArr = Object.values(positions).filter(p => p.underlying_symbol === currentPair && isPositionOpen(p));
+                                                                                                                                                                                                if (openPositionsArr.length > 0) {
+                                                                                                                                                                                                    const openStake = openPositionsArr.reduce((s, p) => s + (Number(p.buy_price) || 0), 0);
+                                                                                                                                                                                                    const openPL = openPositionsArr.reduce((s, p) => s + (Number(p.profit) || 0), 0);
+                                                                                                                                                                                                    const latestPos = openPositionsArr.reduce((a, b) => (b.date_start || 0) > (a.date_start || 0) ? b : a);
+                                                                                                                                                                                                    const forecastLabel = latestPos.contract_type === 'MULTUP' ? 'BUY' : 'SELL';
+                                                                                                                                                                                                    const forecastColor = latestPos.contract_type === 'MULTUP' ? '#0ecb81' : '#f6465d';
+                        
+                                                                                                                                                                                                    const lastCandleCenterX = chartAreaWidth - totalCandleWidth + (candleWidth / 2);
+                                                                                                                                                                                                                                                                                                                                                                                const gapRightEdge = canvasWidth - yAxisWidth - 8;
+                                                                                                                                                                                                                                                                                                                                                                                const blockCenterX = lastCandleCenterX + (gapRightEdge - lastCandleCenterX) * 0.22;
+                                                                                                                                                                                                                                                                                                                                                                                const closeBtnW = 54, closeBtnH = 16;
+                                                                                                                                                                                                                                                                                                                                                                                const closeBtnX = blockCenterX - closeBtnW / 2;
+                                                                                                                                                                                                                                                                                                                                                                                const closeBtnY = currentY - 50;
+                                                                                                                                                                                                    ctx.fillStyle = 'rgba(246,70,93,0.15)';
+                                                                                                                                                                                                    ctx.fillRect(closeBtnX, closeBtnY, closeBtnW, closeBtnH);
+                                                                                                                                                                                                    ctx.strokeStyle = '#f6465d';
+                                                                                                                                                                                                    ctx.lineWidth = 1;
+                                                                                                                                                                                                    ctx.strokeRect(closeBtnX, closeBtnY, closeBtnW, closeBtnH);
+                                                                                                                                                                                                    ctx.fillStyle = '#f6465d';
+                                                                                                                                                                                                    ctx.font = 'bold 10px sans-serif';
+                                                                                                                                                                                                    ctx.textAlign = 'center';
+                                                                                                                                                                                                    ctx.textBaseline = 'middle';
+                                                                                                                                                                                                    ctx.fillText('CLOSE', closeBtnX + closeBtnW / 2, closeBtnY + closeBtnH / 2 + 1);
+                                                                                                                                                                                                    liveCloseBtnRect = { x: closeBtnX, y: closeBtnY, w: closeBtnW, h: closeBtnH, contractId: latestPos.contract_id };
+                                                                        
+                                                                                                                                                                                                    ctx.font = 'bold 12px sans-serif';
+                                                                                                                                                                                                    ctx.textAlign = 'center';
+                                                                                                                                                                                                    ctx.textBaseline = 'top';
+                                                                                                                                                                                                    ctx.fillStyle = '#00e5ff';
+                                                                                                                                                                                                    ctx.fillText(`x${latestPos.multiplier}`, blockCenterX, closeBtnY + closeBtnH + 4);
+                                                                                                                                                                                                    ctx.fillStyle = forecastColor;
+                                                                                                                                                                                                    ctx.fillText(forecastLabel, blockCenterX, closeBtnY + closeBtnH + 17);
+                                                                                                                                                                                                    ctx.fillStyle = openPL >= 0 ? '#0ecb81' : '#f6465d';
+                                                                                                                                                                                                    ctx.fillText(`$${(openStake + openPL).toFixed(2)} [ $${openPL.toFixed(2)}]`, blockCenterX, closeBtnY + closeBtnH + 30);
+                                                                                                                                                                                                } else {
+                                                                                                                                                                                                    liveCloseBtnRect = null;
+                                                                                                                                                                                                }
+                                                                                                                                                            ctx.fillStyle = boxColor;
+                                                                                                                                                            ctx.textAlign = 'right';
+                                                                                                                                                            ctx.textBaseline = 'bottom';
+                                                                                                                                                            ctx.fillText('LIVE', canvasWidth - yAxisWidth - 4, currentY - 2);
+                                                                        
+                                                                                    const labelHeight = 26;
+                                                            const labelY = currentY - labelHeight / 2;
+                        
+                                    ctx.fillStyle = boxColor;
+                                    ctx.fillRect(canvasWidth - yAxisWidth, labelY, yAxisWidth, labelHeight);
+                        
+                                    ctx.beginPath();
+                                    ctx.moveTo(canvasWidth - yAxisWidth, currentY);
+                                    ctx.lineTo(canvasWidth - yAxisWidth + 5, currentY - 5);
+                                    ctx.lineTo(canvasWidth - yAxisWidth + 5, currentY + 5);
+                                    ctx.fill();
+                        
+                                    ctx.fillStyle = '#ffffff';
+                                    ctx.textAlign = 'center';
+                                    ctx.font = 'bold 14px sans-serif';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(currentPrice.toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, currentY);
         }
 
         // --- WEBSOCKET ENGINE ---
@@ -1089,38 +1143,52 @@
                                                 }
                                         
                                                 function updatePositionsUI() {
-                                                    const all = Object.values(positions).sort((a, b) => (b.date_start || 0) - (a.date_start || 0));
-                                                    const openList = all.filter(isPositionOpen);
-                                                    const visible = showClosed ? all : openList;
-                                        
-                                                    const row1El = document.getElementById('positionsRow1');
-                                                    const row2El = document.getElementById('positionsRow2');
-                                        
-                                                    if (visible.length === 0) {
-                                                        row1El.innerHTML = '<div class="positions-empty">NO POSITIONS</div>';
-                                                        row2El.innerHTML = '';
-                                                    } else {
-                                                        const cards = visible.map(renderPositionCard);
-                                                        row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
-                                                        row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
-                                                        positionsList.querySelectorAll('.position-row').forEach(row => {
-                                                            row.addEventListener('click', (e) => {
-                                                                if (e.target.classList.contains('pr-close')) return;
-                                                                const cid = row.getAttribute('data-cid');
-                                                                expandedPositionIds[cid] = !expandedPositionIds[cid];
-                                                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
-                                                            });
-                                                        });
-                                                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
-                                                            btn.addEventListener('click', (e) => {
-                                                                e.stopPropagation();
-                                                                closePosition(Number(btn.getAttribute('data-cid')));
-                                                            });
-                                                        });
-                                                    }
-                                        
-                                                    updateTradeModalUI(openList);
-                                                }
+                                                                                                    const all = Object.values(positions).sort((a, b) => (b.date_start || 0) - (a.date_start || 0));
+                                                                                                    const openList = all.filter(isPositionOpen);
+                                                                                                    const visible = openList;
+                                                                                        
+                                                                                                    const row1El = document.getElementById('positionsRow1');
+                                                                                                    const row2El = document.getElementById('positionsRow2');
+                                                                                        
+                                                                                                    if (visible.length === 0) {
+                                                                                                        row1El.innerHTML = '<div class="positions-empty">NO POSITIONS</div>';
+                                                                                                        row2El.innerHTML = '';
+                                                                                                    } else {
+                                                                                                        const cards = visible.map(renderPositionCard);
+                                                                                                        row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
+                                                                                                        row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
+                                                                                                        positionsList.querySelectorAll('.position-row').forEach(row => {
+                                                                                                            row.addEventListener('click', (e) => {
+                                                                                                                if (e.target.classList.contains('pr-close')) return;
+                                                                                                                const cid = row.getAttribute('data-cid');
+                                                                                                                expandedPositionIds[cid] = !expandedPositionIds[cid];
+                                                                                                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
+                                                                                                            });
+                                                                                                        });
+                                                                                                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
+                                                                                                            btn.addEventListener('click', (e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                closePosition(Number(btn.getAttribute('data-cid')));
+                                                                                                            });
+                                                                                                        });
+                                                                                                    }
+                                                                                        
+                                                                                                    updateTradeModalUI(openList);
+                                                                                                    if (document.getElementById('closedModal').style.display === 'flex') {
+                                                                                                        updateClosedModalUI();
+                                                                                                    }
+                                                                                                }
+                                                                                        
+                                                                                                function updateClosedModalUI() {
+                                                                                                    const all = Object.values(positions).sort((a, b) => (b.date_start || 0) - (a.date_start || 0));
+                                                                                                    const closedList = all.filter(p => !isPositionOpen(p));
+                                                                                                    const list = document.getElementById('closedTradeList');
+                                                                                                    if (closedList.length === 0) {
+                                                                                                        list.innerHTML = '<div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO CLOSED POSITIONS</div>';
+                                                                                                        return;
+                                                                                                    }
+                                                                                                    list.innerHTML = closedList.map(renderPositionCard).join('');
+                                                                                                }
                                         
                                                 function stake_fmt(p) {
                                                     return Number(p.buy_price).toFixed(2);
@@ -1156,12 +1224,19 @@
         }
 
         document.getElementById('showClosedBtn').addEventListener('click', () => {
-                            showClosed = !showClosed;
-                            const btn = document.getElementById('showClosedBtn');
-                            btn.innerText = showClosed ? 'HIDE CLOSED' : 'SHOW CLOSED';
-                            btn.classList.toggle('active', showClosed);
-                            updatePositionsUI();
-                        });
+                                    document.getElementById('closedModal').style.display = 'flex';
+                                    document.getElementById('closedModalOverlay').style.display = 'block';
+                                    updateClosedModalUI();
+                                });
+                        
+                                document.getElementById('close-closed-modal-btn').addEventListener('click', () => {
+                                    document.getElementById('closedModal').style.display = 'none';
+                                    document.getElementById('closedModalOverlay').style.display = 'none';
+                                });
+                                document.getElementById('closedModalOverlay').addEventListener('click', () => {
+                                    document.getElementById('closedModal').style.display = 'none';
+                                    document.getElementById('closedModalOverlay').style.display = 'none';
+                                });
                 
                         document.getElementById('show-trades-btn').addEventListener('click', () => {
                             document.getElementById('tradeModal').style.display = 'flex';
