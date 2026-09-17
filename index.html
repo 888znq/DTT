@@ -205,19 +205,38 @@
 
         /* --- Open Positions Panel (floating, multiplier-specific) --- */
         .positions-panel {
-                    position: absolute;
-                    top: 8px;
-                    right: 8px;
-                    width: 260px;
-                    max-height: 60%;
-                    overflow-y: auto;
-                    background: rgba(0, 4, 50, 0.95);
-                    border: 1px solid #ffffff;
-                    border-radius: 8px;
-                    z-index: 25;
-                    font-size: 11px;
-                }
-                .positions-panel::-webkit-scrollbar { width: 4px; }
+                            position: relative;
+                            width: 100%;
+                            flex-shrink: 0;
+                            max-height: 480px;
+                            background: rgba(0, 4, 50, 0.95);
+                            border: 1px solid #ffffff;
+                            border-left: none;
+                            border-right: none;
+                            border-radius: 0;
+                            z-index: 25;
+                            font-size: 11px;
+                            display: flex;
+                            flex-direction: column;
+                            box-sizing: border-box;
+                        }
+                        #positionsList, #closedList {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            padding: 6px 8px;
+                            overflow-y: auto;
+                            min-height: 0;
+                        }
+                        .pos-track {
+                            display: flex;
+                            flex-direction: row;
+                            gap: 8px;
+                            overflow-x: auto;
+                            padding-bottom: 2px;
+                        }
+                        #positionsList::-webkit-scrollbar, #closedList::-webkit-scrollbar { width: 5px; }
+                        .pos-track::-webkit-scrollbar { height: 5px; }
                 .positions-header {
                     padding: 6px 8px;
                     font-weight: 800;
@@ -227,13 +246,16 @@
                     font-size: 10px;
                 }
                 .position-row {
-                    padding: 6px 8px;
-                    border-bottom: 1px solid #1a1e3a;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                    cursor: pointer;
-                }
+                                    padding: 6px 8px;
+                                    border: 1px solid #1a1e3a;
+                                    border-radius: 6px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 2px;
+                                    cursor: pointer;
+                                    flex: 0 0 260px;
+                                    width: 260px;
+                                }
                 .position-row .pr-top {
                     display: flex;
                     justify-content: space-between;
@@ -298,12 +320,15 @@
                     border-bottom: 2px solid #ffcc00;
                 }
                 .closed-row {
-                    padding: 6px 8px;
-                    border-bottom: 1px solid #1a1e3a;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                }
+                                    padding: 6px 8px;
+                                    border: 1px solid #1a1e3a;
+                                    border-radius: 6px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 2px;
+                                    flex: 0 0 230px;
+                                    width: 230px;
+                                }
                 .closed-row .pr-top {
                     display: flex;
                     justify-content: space-between;
@@ -333,18 +358,25 @@
                 <canvas id="custom-chart"></canvas>
             </div>
 
-            <!-- Live open Multiplier positions -->
-                        <div class="positions-panel" id="positionsPanel">
-                            <div class="positions-tabs">
-                                <button class="positions-tab active" id="tabOpenBtn">OPEN</button>
-                                <button class="positions-tab" id="tabClosedBtn">CLOSED</button>
-                            </div>
-                            <div id="positionsList"><div class="positions-empty">NO OPEN POSITIONS</div></div>
-                            <div id="closedList" style="display:none;"><div class="positions-empty">NO CLOSED TRADES YET</div></div>
+            </div>
+            
+                    <!-- Live open Multiplier positions -->
+                    <div class="positions-panel" id="positionsPanel">
+                        <div class="positions-tabs">
+                            <button class="positions-tab active" id="tabOpenBtn">OPEN</button>
+                            <button class="positions-tab" id="tabClosedBtn">CLOSED</button>
                         </div>
-        </div>
-
-        <div class="bottom-controls" style="display: flex !important; justify-content: center; align-items: center; padding: 2px 10px; background: #000432; width: 100%; box-sizing: border-box; border-top: 1px solid #ffffff;">
+                        <div id="positionsList">
+                                        <div class="pos-track" id="positionsRow1"><div class="positions-empty">NO OPEN POSITIONS</div></div>
+                                        <div class="pos-track" id="positionsRow2"></div>
+                                    </div>
+                                    <div id="closedList" style="display:none;">
+                                        <div class="pos-track" id="closedRow1"><div class="positions-empty">NO CLOSED TRADES YET</div></div>
+                                        <div class="pos-track" id="closedRow2"></div>
+                                    </div>
+                    </div>
+            
+                    <div class="bottom-controls" style="display: flex !important; justify-content: center; align-items: center; padding: 2px 10px; background: #000432; width: 100%; box-sizing: border-box; border-top: 1px solid #ffffff;">
             <div class="segmented-bar" style="display: flex; align-items: stretch; border: 1px solid #ffffff; border-radius: 3px; overflow: hidden; height: 36px;">
 
                 <div style="display: flex; align-items: center; justify-content: center; padding: 0 12px; border-right: 1px solid #ffffff; background: transparent; cursor: pointer;">
@@ -413,7 +445,17 @@
                                     <option value="frxUSDJPY">USD/JPY</option>
                                 </select>
                 
-                                <input type="number" id="candle-time" value="3" step="1" aria-label="Timeframe (seconds)" style="width: 45px; height: 100%; background: transparent; border: none; color: #c8d0e7; text-align: center; font-weight: 800; font-size: 12px; outline: none; margin: 0; padding: 0 6px; box-sizing: border-box;">
+                                <select id="candle-time" aria-label="Timeframe (seconds)" style="width: 55px; height: 100%; background: transparent; border: none; color: #c8d0e7; text-align: center; font-weight: 800; font-size: 12px; outline: none; margin: 0; padding: 0 4px; box-sizing: border-box;">
+                                                                    <option value="1">1s</option>
+                                                                    <option value="3">3s</option>
+                                                                    <option value="5">5s</option>
+                                                                    <option value="10">10s</option>
+                                                                    <option value="15">15s</option>
+                                                                    <option value="30" selected>30s</option>
+                                                                    <option value="60">1m</option>
+                                                                    <option value="120">2m</option>
+                                                                    <option value="300">5m</option>
+                                                                </select>
 
             </div>
 
@@ -445,14 +487,13 @@
         const API_BASE = "https://api.derivws.com";
 
         let ws;
-        let currentPair = "cryBTCUSD";
-        let currentAccountType = "real";
+                let currentPair = "cryBTCUSD";
+                let currentAccountType = "demo";
         let tickSubscriptions = {};
         let payoutSubscriptions = {};
         let openPositions = {}; // contract_id -> position object (from proposal_open_contract)
                 let closedPositions = []; // history of closed trades, newest first
                 let expandedPositionIds = {}; // contract_id -> true if row is expanded in the UI
-                        let _lastPanelGeom = null;
                         let zoomLevel = 100;
         let marketData = {};
         let serverTimeOffset = 0;
@@ -568,30 +609,7 @@
             }
         }
 
-        function positionFloatingPanel(chartAreaWidth, currentY, yAxisWidth, chartHeight) {
-                    const panel = document.getElementById('positionsPanel');
-                    if (!panel) return;
-                    const totalCandleWidth = 10;
-                    const lastCandleX = chartAreaWidth - totalCandleWidth;
-                    const panelWidth = panel.offsetWidth || 260;
-                    const panelHeight = panel.offsetHeight || 200;
-        
-                    let left = lastCandleX + 24;
-                    if (left + panelWidth > canvasWidth - yAxisWidth) {
-                        left = lastCandleX - panelWidth - 24;
-                    }
-                    if (left < 4) left = 4;
-        
-                    let top = currentY - (panelHeight / 2);
-                    if (top < 4) top = 4;
-                    if (top + panelHeight > chartHeight - 4) top = Math.max(4, chartHeight - panelHeight - 4);
-        
-                    panel.style.right = 'auto';
-                    panel.style.left = `${left}px`;
-                    panel.style.top = `${top}px`;
-                }
-        
-                function drawChart() {
+        function drawChart() {
                     if (!ctx) return;
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -729,46 +747,102 @@
                 const lastCandleCenterX = lastCandleX + (candleWidth / 2);
 
                 openForSymbol.forEach(p => {
-                    if (p.entry_spot == null) return;
-                    const color = p.contract_type === 'MULTUP' ? '#0ecb81' : '#f6465d';
-                    const entryY = getY(Number(p.entry_spot));
-                    const clampedEntryY = Math.max(0, Math.min(chartHeight, entryY));
-
-                    ctx.strokeStyle = color;
-                    ctx.setLineDash([4, 3]);
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(0, clampedEntryY);
-                    ctx.lineTo(canvasWidth - yAxisWidth, clampedEntryY);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-
-                    ctx.fillStyle = color;
-                    ctx.font = 'bold 9px sans-serif';
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'bottom';
-                    ctx.fillText(`x${p.multiplier} ENTRY`, 4, clampedEntryY - 2);
-                });
+                                                    if (p.entry_spot == null) return;
+                                                    const color = p.contract_type === 'MULTUP' ? '#0ecb81' : '#f6465d';
+                                                    const entryY = getY(Number(p.entry_spot));
+                                                    const clampedEntryY = Math.max(0, Math.min(chartHeight, entryY));
+                                
+                                                    ctx.strokeStyle = color;
+                                                    ctx.setLineDash([4, 3]);
+                                                    ctx.lineWidth = 1;
+                                                    ctx.beginPath();
+                                                    ctx.moveTo(0, clampedEntryY);
+                                                    ctx.lineTo(canvasWidth - yAxisWidth, clampedEntryY);
+                                                    ctx.stroke();
+                                                    ctx.setLineDash([]);
+                
+                                                    const entryColor = '#00e5ff';
+                                                                                        ctx.strokeStyle = entryColor;
+                                                                                        ctx.setLineDash([4, 3]);
+                                                                                        ctx.lineWidth = 1;
+                                                                                        ctx.beginPath();
+                                                                                        ctx.moveTo(0, clampedEntryY);
+                                                                                        ctx.lineTo(canvasWidth - yAxisWidth, clampedEntryY);
+                                                                                        ctx.stroke();
+                                                                                        ctx.setLineDash([]);
+                                                    
+                                                                                        ctx.fillStyle = entryColor;
+                                                                                        ctx.font = 'bold 9px sans-serif';
+                                                                                        ctx.textAlign = 'right';
+                                                                                        ctx.textBaseline = 'bottom';
+                                                                                        ctx.fillText(`x${p.multiplier} ENTRY`, canvasWidth - yAxisWidth - 4, clampedEntryY - 2);
+                                                    
+                                                                                        const entryBoxHeight = 18;
+                                                                                        const entryBoxY = clampedEntryY - entryBoxHeight / 2;
+                                                                                        ctx.fillStyle = entryColor;
+                                                                                        ctx.fillRect(canvasWidth - yAxisWidth, entryBoxY, yAxisWidth, entryBoxHeight);
+                                                                                        ctx.fillStyle = '#000432';
+                                                                                        ctx.textAlign = 'center';
+                                                                                        ctx.font = 'bold 10px sans-serif';
+                                                                                        ctx.textBaseline = 'middle';
+                                                                                        ctx.fillText(Number(p.entry_spot).toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, clampedEntryY);
+                                                                                        
+                                                                                                            const { breakeven } = computeDerivedMetrics(p);
+                                                                                                            if (breakeven != null && isFinite(breakeven)) {
+                                                                                                                const beColor = '#ffcc00';
+                                                                                                                const beY = getY(breakeven);
+                                                                                                                const clampedBeY = Math.max(0, Math.min(chartHeight, beY));
+                                                                                        
+                                                                                                                ctx.strokeStyle = beColor;
+                                                                                                                ctx.setLineDash([6, 3]);
+                                                                                                                ctx.lineWidth = 1;
+                                                                                                                ctx.beginPath();
+                                                                                                                ctx.moveTo(0, clampedBeY);
+                                                                                                                ctx.lineTo(canvasWidth - yAxisWidth, clampedBeY);
+                                                                                                                ctx.stroke();
+                                                                                                                ctx.setLineDash([]);
+                                                    
+                                                                                                                ctx.fillStyle = beColor;
+                                                                                                                ctx.font = 'bold 9px sans-serif';
+                                                                                                                ctx.textAlign = 'right';
+                                                                                                                ctx.textBaseline = 'top';
+                                                                                                                ctx.fillText(`x${p.multiplier} BREAKEVEN`, canvasWidth - yAxisWidth - 4, clampedBeY + 2);
+                                                    
+                                                                                                                const beBoxHeight = 18;
+                                                                                                                const beBoxY = clampedBeY - beBoxHeight / 2;
+                                                                                                                ctx.fillStyle = beColor;
+                                                                                                                ctx.fillRect(canvasWidth - yAxisWidth, beBoxY, yAxisWidth, beBoxHeight);
+                                                                                                                ctx.fillStyle = '#000432';
+                                                                                                                ctx.textAlign = 'center';
+                                                                                                                ctx.font = 'bold 10px sans-serif';
+                                                                                                                ctx.textBaseline = 'middle';
+                                                                                                                ctx.fillText(breakeven.toFixed(dec), canvasWidth - (yAxisWidth / 2) + 2, clampedBeY);
+                                                                                                            }
+                                                                                                        });
             }
 
             // --- DRAW CURRENT PRICE LABEL (no countdown timer - multiplier has no expiry) ---
             const currentPrice = lastCandle.close;
                         const currentY = getY(currentPrice);
-                        _lastPanelGeom = { chartAreaWidth, currentY, yAxisWidth, chartHeight };
-                        positionFloatingPanel(chartAreaWidth, currentY, yAxisWidth, chartHeight);
                         const isUp = currentPrice >= lastCandle.open;
             const boxColor = isUp ? '#0ecb81' : '#f6465d';
 
             ctx.strokeStyle = boxColor;
-            ctx.setLineDash([2, 4]);
-            ctx.beginPath();
-            ctx.moveTo(0, currentY);
-            ctx.lineTo(canvasWidth - yAxisWidth, currentY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            const labelHeight = 22;
-            const labelY = currentY - labelHeight / 2;
+                        ctx.setLineDash([2, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(0, currentY);
+                        ctx.lineTo(canvasWidth - yAxisWidth, currentY);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+            
+                        ctx.fillStyle = boxColor;
+                                    ctx.font = 'bold 9px sans-serif';
+                                    ctx.textAlign = 'right';
+                                    ctx.textBaseline = 'bottom';
+                                    ctx.fillText('LIVE', canvasWidth - yAxisWidth - 4, currentY - 2);
+                        
+                                    const labelHeight = 22;
+                                    const labelY = currentY - labelHeight / 2;
 
             ctx.fillStyle = boxColor;
             ctx.fillRect(canvasWidth - yAxisWidth, labelY, yAxisWidth, labelHeight);
@@ -973,101 +1047,105 @@
                 }
         
                 // --- OPEN POSITIONS UI (floating panel + modal) ---
-                function updatePositionsUI() {
-                    const positions = Object.values(openPositions);
-        
-                    if (positions.length === 0) {
-                        positionsList.innerHTML = '<div class="positions-empty">NO OPEN POSITIONS</div>';
-                    } else {
-                        let html = '';
-                        positions.forEach(p => {
-                            const profit = Number(p.profit) || 0;
-                            const color = profit >= 0 ? '#0ecb81' : '#f6465d';
-                            const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
-                            const { breakeven, stopOut } = computeDerivedMetrics(p);
-                            const entryTime = formatEpoch(p.date_start || p.purchase_time);
-                            const isExpanded = !!expandedPositionIds[p.contract_id];
-                            const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
-        
-                            html += `
-                                <div class="position-row${isExpanded ? ' expanded' : ''}" data-cid="${p.contract_id}">
-                                    <div class="pr-top">
-                                        <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
-                                        <span style="color:${color};">$${profit.toFixed(2)}</span>
-                                    </div>
-                                    <div class="pr-bottom">
-                                        <span>Stake $${stake_fmt(p)}</span>
-                                        <span>Bid $${Number(p.bid_price).toFixed(2)}</span>
-                                    </div>
-                                    <div class="pr-detail">
-                                        <div class="pr-detail-line"><span class="lbl">Trade Amount</span><span>$${stake_fmt(p)}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Leverage</span><span>x${p.multiplier}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Forecast</span><span style="color:${dirLabel === 'UP' ? '#0ecb81' : '#f6465d'}">${dirLabel}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Entry Time</span><span>${entryTime}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Entry Price</span><span>${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Liquidation Price</span><span style="color:#f6465d;">${stopOut != null ? stopOut.toFixed(dec) : '--'}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Breakeven (fee-covered) Price</span><span style="color:#ffcc00;">${breakeven != null ? breakeven.toFixed(dec) : '--'}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Live Bid Value</span><span>$${Number(p.bid_price).toFixed(2)}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Live P&L</span><span style="color:${color};">$${profit.toFixed(2)}</span></div>
-                                        <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || 'open').toUpperCase()}</span></div>
-                                    </div>
-                                    <button class="pr-close" data-cid="${p.contract_id}">CLOSE</button>
-                                </div>`;
-                        });
-                        positionsList.innerHTML = html;
-                        positionsList.querySelectorAll('.position-row').forEach(row => {
-                            row.addEventListener('click', (e) => {
-                                if (e.target.classList.contains('pr-close')) return;
-                                const cid = row.getAttribute('data-cid');
-                                expandedPositionIds[cid] = !expandedPositionIds[cid];
-                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
-                            });
-                        });
-                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                closePosition(Number(btn.getAttribute('data-cid')));
-                            });
-                        });
-                    }
-        
-                    updateClosedListUI();
-                                        updateTradeModalUI(positions);
-                                        if (_lastPanelGeom) positionFloatingPanel(_lastPanelGeom.chartAreaWidth, _lastPanelGeom.currentY, _lastPanelGeom.yAxisWidth, _lastPanelGeom.chartHeight);
+                                function updatePositionsUI() {
+                                    const positions = Object.values(openPositions);
+                                    const row1El = document.getElementById('positionsRow1');
+                                    const row2El = document.getElementById('positionsRow2');
+                        
+                                    if (positions.length === 0) {
+                                        row1El.innerHTML = '<div class="positions-empty">NO OPEN POSITIONS</div>';
+                                        row2El.innerHTML = '';
+                                    } else {
+                                        const cards = positions.map(p => {
+                                            const profit = Number(p.profit) || 0;
+                                            const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                                            const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                                            const { breakeven, stopOut } = computeDerivedMetrics(p);
+                                            const entryTime = formatEpoch(p.date_start || p.purchase_time);
+                                            const isExpanded = !!expandedPositionIds[p.contract_id];
+                                            const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
+                        
+                                            return `
+                                                <div class="position-row${isExpanded ? ' expanded' : ''}" data-cid="${p.contract_id}">
+                                                    <div class="pr-top">
+                                                        <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
+                                                        <span style="color:${color};">$${profit.toFixed(2)}</span>
+                                                    </div>
+                                                    <div class="pr-bottom">
+                                                        <span>Stake $${stake_fmt(p)}</span>
+                                                        <span>Bid $${Number(p.bid_price).toFixed(2)}</span>
+                                                    </div>
+                                                    <div class="pr-detail">
+                                                        <div class="pr-detail-line"><span class="lbl">Trade Amount</span><span>$${stake_fmt(p)}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Leverage</span><span>x${p.multiplier}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Forecast</span><span style="color:${dirLabel === 'UP' ? '#0ecb81' : '#f6465d'}">${dirLabel}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Entry Time</span><span>${entryTime}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Entry Price</span><span>${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Liquidation Price</span><span style="color:#f6465d;">${stopOut != null ? stopOut.toFixed(dec) : '--'}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Breakeven (fee-covered) Price</span><span style="color:#ffcc00;">${breakeven != null ? breakeven.toFixed(dec) : '--'}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Live Bid Value</span><span>$${Number(p.bid_price).toFixed(2)}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Live P&L</span><span style="color:${color};">$${profit.toFixed(2)}</span></div>
+                                                        <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || 'open').toUpperCase()}</span></div>
+                                                    </div>
+                                                    <button class="pr-close" data-cid="${p.contract_id}">CLOSE</button>
+                                                </div>`;
+                                        });
+                                        row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
+                                        row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
+                                        positionsList.querySelectorAll('.position-row').forEach(row => {
+                                            row.addEventListener('click', (e) => {
+                                                if (e.target.classList.contains('pr-close')) return;
+                                                const cid = row.getAttribute('data-cid');
+                                                expandedPositionIds[cid] = !expandedPositionIds[cid];
+                                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
+                                            });
+                                        });
+                                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
+                                            btn.addEventListener('click', (e) => {
+                                                e.stopPropagation();
+                                                closePosition(Number(btn.getAttribute('data-cid')));
+                                            });
+                                        });
                                     }
-        
-                function stake_fmt(p) {
-                    return Number(p.buy_price).toFixed(2);
-                }
-        
-                function updateClosedListUI() {
-                    const closedList = document.getElementById('closedList');
-                    if (!closedList) return;
-                    if (closedPositions.length === 0) {
-                        closedList.innerHTML = '<div class="positions-empty">NO CLOSED TRADES YET</div>';
-                        return;
-                    }
-                    let html = '';
-                    closedPositions.forEach(p => {
-                        const profit = Number(p.profit) || 0;
-                        const color = profit >= 0 ? '#0ecb81' : '#f6465d';
-                        const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
-                        const entryTime = formatEpoch(p.date_start || p.purchase_time);
-                        const closeTime = formatEpoch(p.sell_time || p.exit_spot_time);
-                        const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
-                        html += `
-                            <div class="closed-row">
-                                <div class="pr-top">
-                                    <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
-                                    <span style="color:${color};">$${profit.toFixed(2)}</span>
-                                </div>
-                                <div class="pr-detail-line"><span class="lbl">Entry</span><span>${entryTime} @ ${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
-                                <div class="pr-detail-line"><span class="lbl">Close</span><span>${closeTime} @ ${p.exit_spot != null ? Number(p.exit_spot).toFixed(dec) : '--'}</span></div>
-                                <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || '--').toUpperCase()}</span></div>
-                            </div>`;
-                    });
-                    closedList.innerHTML = html;
-                }
+                        
+                                    updateClosedListUI();
+                                    updateTradeModalUI(positions);
+                                }
+                        
+                                function stake_fmt(p) {
+                                    return Number(p.buy_price).toFixed(2);
+                                }
+                        
+                                function updateClosedListUI() {
+                                    const row1El = document.getElementById('closedRow1');
+                                    const row2El = document.getElementById('closedRow2');
+                                    if (!row1El || !row2El) return;
+                                    if (closedPositions.length === 0) {
+                                        row1El.innerHTML = '<div class="positions-empty">NO CLOSED TRADES YET</div>';
+                                        row2El.innerHTML = '';
+                                        return;
+                                    }
+                                    const cards = closedPositions.map(p => {
+                                        const profit = Number(p.profit) || 0;
+                                        const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                                        const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                                        const entryTime = formatEpoch(p.date_start || p.purchase_time);
+                                        const closeTime = formatEpoch(p.sell_time || p.exit_spot_time);
+                                        const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
+                                        return `
+                                            <div class="closed-row">
+                                                <div class="pr-top">
+                                                    <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
+                                                    <span style="color:${color};">$${profit.toFixed(2)}</span>
+                                                </div>
+                                                <div class="pr-detail-line"><span class="lbl">Entry</span><span>${entryTime} @ ${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
+                                                <div class="pr-detail-line"><span class="lbl">Close</span><span>${closeTime} @ ${p.exit_spot != null ? Number(p.exit_spot).toFixed(dec) : '--'}</span></div>
+                                                <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || '--').toUpperCase()}</span></div>
+                                            </div>`;
+                                    });
+                                    row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
+                                    row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
+                                }
 
         function updateTradeModalUI(positions) {
             const list = document.getElementById('tradeList');
@@ -1187,8 +1265,8 @@
         }
 
         function getCandleDuration() {
-            return (parseInt(candleTimeInput.value) || 8);
-        }
+                    return (parseInt(candleTimeInput.value) || 30);
+                }
 
         function processHistory(symbol, times, prices) {
             const duration = getCandleDuration();
