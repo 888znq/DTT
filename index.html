@@ -821,13 +821,21 @@
                         ctx.stroke();
                         ctx.setLineDash([]);
             
-                        ctx.fillStyle = boxColor;
-                                    ctx.font = 'bold 9px sans-serif';
-                                    ctx.textAlign = 'right';
-                                    ctx.textBaseline = 'bottom';
-                                    ctx.fillText('LIVE', canvasWidth - yAxisWidth - 4, currentY - 2);
-                        
-                                    const labelHeight = 22;
+                        ctx.font = 'bold 9px sans-serif';
+                                                            ctx.textAlign = 'right';
+                                                            ctx.textBaseline = 'bottom';
+                                                            const openPositionsArr = Object.values(positions).filter(isPositionOpen);
+                                                                                                if (openPositionsArr.length > 0) {
+                                                                                                    const openStake = openPositionsArr.reduce((s, p) => s + (Number(p.buy_price) || 0), 0);
+                                                                                                    const openPL = openPositionsArr.reduce((s, p) => s + (Number(p.profit) || 0), 0);
+                                                                                                    const liveValue = openStake + openPL;
+                                                                                                    ctx.fillStyle = openPL >= 0 ? '#0ecb81' : '#f6465d';
+                                                                                                    ctx.fillText(`$${liveValue.toFixed(2)}`, canvasWidth - yAxisWidth - 4, currentY - 13);
+                                                                                                }
+                                                            ctx.fillStyle = boxColor;
+                                                            ctx.fillText('LIVE', canvasWidth - yAxisWidth - 4, currentY - 2);
+                                                
+                                                            const labelHeight = 22;
                                     const labelY = currentY - labelHeight / 2;
 
             ctx.fillStyle = boxColor;
