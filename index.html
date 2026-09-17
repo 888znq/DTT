@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Multiplier Dashboard - LIVE TV</title>
-
-    <link rel="manifest" href="manifest.json">
+    
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    
+        <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000432">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
@@ -389,8 +394,10 @@
                                 <input type="number" id="take-profit" placeholder="TP" aria-label="Take Profit" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
                 
                                 <button id="show-trades-btn" class="action-btn btn-log" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 10px !important; font-size: 11px; color: #ffcc00; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; white-space: nowrap;">POSITIONS</button>
-                
-                                <select id="pair-select" aria-label="Trading Pair" style="width: 90px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #00e5ff; text-align: center; font-weight: bold; font-size: 12px; outline: none; margin: 0; padding: 0;">
+                                
+                                                                <button id="show-editor-btn" class="action-btn btn-log" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 10px !important; font-size: 11px; color: #38bdf8; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; white-space: nowrap;">CODE</button>
+                                                
+                                                                <select id="pair-select" aria-label="Trading Pair" style="width: 90px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #00e5ff; text-align: center; font-weight: bold; font-size: 12px; outline: none; margin: 0; padding: 0;">
                                     <option value="cryBTCUSD">BTC/USD</option>
                                     <option value="cryETHUSD">ETH/USD</option>
                                     <option value="1HZ10V">Volatility 10</option>
@@ -474,9 +481,55 @@
                 <div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO CLOSED POSITIONS</div>
             </div>
         </div>
-
-    <script>
-        // ================= DERIV MULTIPLIER TRADING (api.derivws.com) =================
+        
+                <div id="editorModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,4,50,0.8); z-index:2005;"></div>
+                <div id="editorModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90vw; max-width:600px; height:600px; background:#000432; border-radius: 20px; z-index:2006; flex-direction:column; overflow: hidden; border: 1px solid #ffffff;">
+                    <div style="padding:15px; background:#000432; color:#38bdf8; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; z-index: 10; border-bottom: 1px solid #333;">
+                        <span>CUSTOM INDICATOR EDITOR</span>
+                        <button id="close-editor-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
+                    </div>
+                    <div style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+                        <textarea id="code-editor-textarea"></textarea>
+                    </div>
+                    <div style="padding:10px; border-top: 1px solid #333; display:flex; justify-content:flex-end;">
+                        <button id="save-script-btn" style="background:#0ecb81; color:#000432; border:none; padding:8px 16px; font-weight:bold; border-radius:6px; cursor:pointer;">Save & Compile</button>
+                    </div>
+                </div>
+        
+            <script type="module">
+                import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+                import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAYHA8Qw3Qw3Qzbyg8MtjrSKcJusNi4VaA6V4",
+                    authDomain: "system-data-bf026.firebaseapp.com",
+                    databaseURL: "https://system-data-bf026-default-rtdb.asia-southeast1.firebasedatabase.app",
+                    projectId: "system-data-bf026",
+                    storageBucket: "system-data-bf026.firebasestorage.app",
+                    messagingSenderId: "718302899022",
+                    appId: "1:718302899022:web:f1675dbcc293e138c68c1f"
+                };
+                const fbApp = initializeApp(firebaseConfig);
+                const db = getDatabase(fbApp);
+                const SCRIPTS_REF = ref(db, 'terminal_scripts/active');
+        
+                window.cloudDB = {
+                    saveScript: (codeString) => {
+                        set(SCRIPTS_REF, { code: codeString, updated_at: Date.now() })
+                            .then(() => console.log("Script saved to Firebase."))
+                            .catch(e => console.error("Firebase save failed:", e));
+                    },
+                    listenScripts: (callback) => {
+                        onValue(SCRIPTS_REF, (snap) => {
+                            const val = snap.val();
+                            if (val && val.code) callback(val.code);
+                        });
+                    }
+                };
+            </script>
+        
+            <script>
+                // ================= DERIV MULTIPLIER TRADING (api.derivws.com) =================
         // Verified against developers.deriv.com/llms/*.md :
         //   proposal (MULTUP/MULTDOWN + limit_order), buy, sell,
         //   proposal_open_contract (subscribe-all, gives real bid_price/profit/status)
@@ -523,8 +576,38 @@
             "frxXPTUSD"
         ];
 
-        // UI Elements
-        const candleTimeInput = document.getElementById('candle-time');
+        // --- CUSTOM INDICATOR ENGINE ---
+                class TradingIndicator {
+                    constructor(name, params) {
+                        this.name = name;
+                        this.params = params;
+                        this.data = [];
+                    }
+                    calculate(candles) { throw new Error("calculate() not implemented"); }
+                    draw(ctx, chartParams) { throw new Error("draw() not implemented"); }
+                }
+                let activeIndicators = [];
+        
+                function compileCloudIndicator(codeString) {
+                    try {
+                        const scriptFactory = new Function('TradingIndicator', codeString);
+                        const CustomIndicatorClass = scriptFactory(TradingIndicator);
+                        const liveIndicator = new CustomIndicatorClass();
+                        activeIndicators = [liveIndicator]; // Replaces existing so you only run the latest edit
+                        console.log(`Loaded custom indicator: ${liveIndicator.name}`);
+                        
+                        // Force recalculation if we already have chart data
+                        if (marketData[currentPair] && marketData[currentPair].length > 0) {
+                            activeIndicators.forEach(ind => ind.calculate(marketData[currentPair]));
+                            drawChart();
+                        }
+                    } catch (error) {
+                        console.error("Indicator Compilation Error:", error);
+                    }
+                }
+        
+                // UI Elements
+                const candleTimeInput = document.getElementById('candle-time');
         const balanceDisplay = document.getElementById('balance-display');
         const connStatus = document.getElementById('conn-status');
         const loadingText = document.getElementById('loading-text');
@@ -533,8 +616,81 @@
         const takeProfitInput = document.getElementById('take-profit');
         const estPayoutDisplay = document.getElementById('est-payout-display');
         const positionsList = document.getElementById('positionsList');
-
-        function applyZoom() {
+        
+                let codeEditor;
+                window.addEventListener('load', () => {
+                    codeEditor = CodeMirror.fromTextArea(document.getElementById("code-editor-textarea"), {
+                        lineNumbers: true,
+                        mode: "javascript",
+                        theme: "monokai"
+                    });
+                    codeEditor.setSize("100%", "100%");
+                    
+                    const defaultScript = `class CloudSMA extends TradingIndicator {
+            constructor() { 
+                super('Cloud SMA', { length: 10 }); 
+            }
+            calculate(candles) { 
+                this.data = []; 
+                for (let i = 0; i < candles.length; i++) {
+                    if (i < this.params.length - 1) { this.data.push(null); continue; }
+                    let sum = 0;
+                    for (let j = 0; j < this.params.length; j++) sum += candles[i - j].close;
+                    this.data.push(sum / this.params.length);
+                }
+            }
+            draw(ctx, { visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth }) {
+                ctx.strokeStyle = '#00e5ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                let started = false;
+                for (let i = 0; i < visibleCandles.length; i++) {
+                    const val = this.data[sliceStart + i];
+                    if (val === null) continue;
+                    const x = chartAreaWidth - ((visibleCandles.length - i) * totalCandleWidth) + (totalCandleWidth / 2);
+                    const y = getY(val);
+                    if (!started) { ctx.moveTo(x, y); started = true; } 
+                    else { ctx.lineTo(x, y); }
+                }
+                ctx.stroke();
+            }
+        }
+        return CloudSMA;`;
+        
+                    // Wait for module injection to complete and attach cloudDB listener
+                    setTimeout(() => {
+                        if (window.cloudDB) {
+                            window.cloudDB.listenScripts((codeString) => {
+                                if (codeEditor.getValue() !== codeString) codeEditor.setValue(codeString);
+                                compileCloudIndicator(codeString);
+                            });
+                        } else {
+                            codeEditor.setValue(defaultScript);
+                            compileCloudIndicator(defaultScript);
+                        }
+                    }, 1000);
+                });
+        
+                document.getElementById('show-editor-btn').addEventListener('click', () => {
+                    document.getElementById('editorModal').style.display = 'flex';
+                    document.getElementById('editorModalOverlay').style.display = 'block';
+                    setTimeout(() => codeEditor.refresh(), 100);
+                });
+        
+                document.getElementById('close-editor-btn').addEventListener('click', () => {
+                    document.getElementById('editorModal').style.display = 'none';
+                    document.getElementById('editorModalOverlay').style.display = 'none';
+                });
+        
+                document.getElementById('save-script-btn').addEventListener('click', () => {
+                    const rawCode = codeEditor.getValue();
+                    if (window.cloudDB) window.cloudDB.saveScript(rawCode);
+                    compileCloudIndicator(rawCode);
+                    document.getElementById('editorModal').style.display = 'none';
+                    document.getElementById('editorModalOverlay').style.display = 'none';
+                });
+        
+                function applyZoom() {
             const el = document.querySelector('.dashboard-container');
             const factor = zoomLevel / 100;
             el.style.transform = `scale(${factor})`;
@@ -831,11 +987,20 @@
                     const secs = date.getSeconds().toString().padStart(2, '0');
 
                     ctx.fillStyle = '#888';
-                    ctx.fillText(`${hours}:${mins}:${secs}`, x + candleWidth / 2, chartHeight + 6);
-                }
-            }
-
-            // --- DRAW ENTRY LINES FOR OPEN MULTIPLIER POSITIONS ON THIS SYMBOL ---
+                                        ctx.fillText(`${hours}:${mins}:${secs}`, x + candleWidth / 2, chartHeight + 6);
+                                    }
+                                }
+                    
+                                const chartParams = {
+                                    visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth
+                                };
+                                activeIndicators.forEach(ind => {
+                                    ctx.save();
+                                    try { ind.draw(ctx, chartParams); } catch(e) { console.error("Indicator draw error", e); }
+                                    ctx.restore();
+                                });
+                    
+                                // --- DRAW ENTRY LINES FOR OPEN MULTIPLIER POSITIONS ON THIS SYMBOL ---
                                     const openForSymbol = isLiveView ? Object.values(positions).filter(p => p.underlying_symbol === currentPair && isPositionOpen(p)) : [];
                         if (openForSymbol.length > 0 && lastCandle) {
                 const lastCandleX = chartAreaWidth - totalCandleWidth;
@@ -1397,9 +1562,10 @@
                         if (!batch || batch.length === 0) break;
                         all = batch.concat(all); // older batch first - each batch already comes back ascending
                         if (symbol === currentPair) {
-                            marketData[symbol] = all.map(c => ({ time: Number(c.epoch), open: Number(c.open), high: Number(c.high), low: Number(c.low), close: Number(c.close) }));
-                            drawChart();
-                        }
+                                                    marketData[symbol] = all.map(c => ({ time: Number(c.epoch), open: Number(c.open), high: Number(c.high), low: Number(c.low), close: Number(c.close) }));
+                                                    activeIndicators.forEach(ind => ind.calculate(marketData[symbol]));
+                                                    drawChart();
+                                                }
                         if (batch.length < MAX_CANDLES_PER_REQUEST) break; // hit the earliest data the server has
                         endEpoch = Number(batch[0].epoch) - granularity;
                     }
@@ -1459,15 +1625,16 @@
         }
 
         function switchPairView(newPair) {
-                    currentPair = newPair;
-                    chartPanOffset = 0;
-                    if (!marketData[newPair] || marketData[newPair].length === 0) {
-                loadingText.style.display = 'block';
-                if (ws && ws.readyState === WebSocket.OPEN) fetchPairData(newPair);
-            } else {
-                drawChart();
-            }
-        }
+                            currentPair = newPair;
+                            chartPanOffset = 0;
+                            if (!marketData[newPair] || marketData[newPair].length === 0) {
+                        loadingText.style.display = 'block';
+                        if (ws && ws.readyState === WebSocket.OPEN) fetchPairData(newPair);
+                    } else {
+                        activeIndicators.forEach(ind => ind.calculate(marketData[newPair]));
+                        drawChart();
+                    }
+                }
 
         function getCandleDuration() {
                             return (parseInt(candleTimeInput.value) || 30);
@@ -1507,10 +1674,13 @@
                         return;
                     }
         
-                    if (symbol === currentPair) drawChart();
-                }
-
-        candleTimeInput.addEventListener('change', () => {
+                    if (symbol === currentPair) {
+                                            activeIndicators.forEach(ind => ind.calculate(marketData[symbol]));
+                                            drawChart();
+                                        }
+                                    }
+                    
+                            candleTimeInput.addEventListener('change', () => {
                     loadingText.style.display = 'block';
                     chartPanOffset = 0;
                     if (ws && ws.readyState === WebSocket.OPEN) {
