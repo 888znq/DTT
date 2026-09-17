@@ -335,10 +335,51 @@
                                     border-color: #ffcc00;
                                 }
                                 .position-row.closed {
-                                    opacity: 0.6;
-                                }
-
-        </style>
+                                                                    opacity: 0.6;
+                                                                }
+                                                                .script-item {
+                                                                    display: flex;
+                                                                    align-items: center;
+                                                                    justify-content: space-between;
+                                                                    padding: 6px 8px;
+                                                                    border: 1px solid #1a1e3a;
+                                                                    border-radius: 6px;
+                                                                    margin-bottom: 6px;
+                                                                    cursor: pointer;
+                                                                    font-size: 11px;
+                                                                    color: #c8d0e7;
+                                                                }
+                                                                .script-item.active {
+                                                                    border-color: #38bdf8;
+                                                                    background: rgba(56,189,248,0.08);
+                                                                }
+                                                                .script-item-name {
+                                                                    overflow: hidden;
+                                                                    text-overflow: ellipsis;
+                                                                    white-space: nowrap;
+                                                                    flex: 1;
+                                                                    margin-right: 8px;
+                                                                }
+                                                                .script-item-actions {
+                                                                    display: flex;
+                                                                    gap: 4px;
+                                                                    flex-shrink: 0;
+                                                                }
+                                                                .script-act-btn {
+                                                                    background: transparent;
+                                                                    border: 1px solid #333;
+                                                                    color: #8892b0;
+                                                                    border-radius: 4px;
+                                                                    font-size: 10px;
+                                                                    font-weight: 800;
+                                                                    padding: 3px 6px;
+                                                                    cursor: pointer;
+                                                                }
+                                                                .script-act-btn.edit:hover { color: #38bdf8; border-color: #38bdf8; }
+                                                                .script-act-btn.apply:hover { color: #0ecb81; border-color: #0ecb81; }
+                                                                .script-act-btn.delete:hover { color: #f6465d; border-color: #f6465d; }
+                                
+                                        </style>
 </head>
 <body>
 
@@ -489,11 +530,22 @@
                         <button id="close-editor-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
                     </div>
                     <div style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
-                        <textarea id="code-editor-textarea"></textarea>
-                    </div>
-                    <div style="padding:10px; border-top: 1px solid #333; display:flex; justify-content:flex-end;">
-                        <button id="save-script-btn" style="background:#0ecb81; color:#000432; border:none; padding:8px 16px; font-weight:bold; border-radius:6px; cursor:pointer;">Save & Compile</button>
-                    </div>
+                                            <div id="scriptsListContainer" style="max-height:130px; overflow-y:auto; padding:8px; border-bottom:1px solid #333; flex-shrink:0;">
+                                                <div id="scriptsList"></div>
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:8px; padding:8px; border-bottom:1px solid #333; flex-shrink:0;">
+                                                <input type="text" id="script-name-input" placeholder="Script name" style="flex:1; background:#000432; border:1px solid #ffffff; color:#c8d0e7; padding:6px; border-radius:6px; font-size:12px; outline:none;">
+                                                <button id="new-script-btn" style="background:transparent; color:#38bdf8; border:1px solid #38bdf8; padding:6px 10px; font-weight:bold; border-radius:6px; cursor:pointer; font-size:11px;">NEW</button>
+                                            </div>
+                                            <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+                                                <textarea id="code-editor-textarea"></textarea>
+                                            </div>
+                                        </div>
+                                        <div style="padding:10px; border-top: 1px solid #333; display:flex; justify-content:flex-end; gap:8px;">
+                                            <button id="delete-script-btn" style="background:transparent; color:#f6465d; border:1px solid #f6465d; padding:8px 16px; font-weight:bold; border-radius:6px; cursor:pointer;">Delete</button>
+                                            <button id="save-script-btn" style="background:#38bdf8; color:#000432; border:none; padding:8px 16px; font-weight:bold; border-radius:6px; cursor:pointer;">Save</button>
+                                            <button id="apply-script-btn" style="background:#0ecb81; color:#000432; border:none; padding:8px 16px; font-weight:bold; border-radius:6px; cursor:pointer;">Apply</button>
+                                        </div>
                 </div>
         
             <script type="module">
@@ -512,20 +564,37 @@
                 const fbApp = initializeApp(firebaseConfig);
                 const db = getDatabase(fbApp);
                 const SCRIPTS_REF = ref(db, 'terminal_scripts/active');
-        
-                window.cloudDB = {
-                    saveScript: (codeString) => {
-                        set(SCRIPTS_REF, { code: codeString, updated_at: Date.now() })
-                            .then(() => console.log("Script saved to Firebase."))
-                            .catch(e => console.error("Firebase save failed:", e));
-                    },
-                    listenScripts: (callback) => {
-                        onValue(SCRIPTS_REF, (snap) => {
-                            const val = snap.val();
-                            if (val && val.code) callback(val.code);
-                        });
-                    }
-                };
+                                const LIBRARY_REF = ref(db, 'terminal_scripts/library');
+                        
+                                window.cloudDB = {
+                                    saveScript: (codeString) => {
+                                        set(SCRIPTS_REF, { code: codeString, updated_at: Date.now() })
+                                            .then(() => console.log("Script saved to Firebase."))
+                                            .catch(e => console.error("Firebase save failed:", e));
+                                    },
+                                    listenScripts: (callback) => {
+                                        onValue(SCRIPTS_REF, (snap) => {
+                                            const val = snap.val();
+                                            if (val && val.code) callback(val.code);
+                                        });
+                                    },
+                                    saveScriptToLibrary: (id, name, codeString) => {
+                                        set(ref(db, 'terminal_scripts/library/' + id), { name: name, code: codeString, updated_at: Date.now() })
+                                            .then(() => console.log("Script saved to library."))
+                                            .catch(e => console.error("Firebase library save failed:", e));
+                                    },
+                                    deleteScript: (id) => {
+                                        set(ref(db, 'terminal_scripts/library/' + id), null)
+                                            .then(() => console.log("Script deleted from library."))
+                                            .catch(e => console.error("Firebase library delete failed:", e));
+                                    },
+                                    listenLibrary: (callback) => {
+                                        onValue(LIBRARY_REF, (snap) => {
+                                            const val = snap.val() || {};
+                                            callback(val);
+                                        });
+                                    }
+                                };
             </script>
         
             <script>
@@ -587,6 +656,8 @@
                     draw(ctx, chartParams) { throw new Error("draw() not implemented"); }
                 }
                 let activeIndicators = [];
+                                let scriptLibrary = {};
+                                let selectedScriptId = null;
         
                 function compileCloudIndicator(codeString) {
                     try {
@@ -602,11 +673,88 @@
                             drawChart();
                         }
                     } catch (error) {
-                        console.error("Indicator Compilation Error:", error);
-                    }
-                }
-        
-                // UI Elements
+                                            console.error("Indicator Compilation Error:", error);
+                                        }
+                                    }
+                            
+                                    function renderScriptsList() {
+                                        const container = document.getElementById('scriptsList');
+                                        if (!container) return;
+                                        const ids = Object.keys(scriptLibrary);
+                                        if (ids.length === 0) {
+                                            container.innerHTML = '<div style="color:#8892b0; font-size:11px; text-align:center; padding:10px;">NO SAVED SCRIPTS</div>';
+                                            return;
+                                        }
+                                        container.innerHTML = ids.map(function(id) {
+                                            const s = scriptLibrary[id];
+                                            const isActive = id === selectedScriptId;
+                                            const safeName = (s.name || 'Untitled').replace(/</g, '&lt;');
+                                            return '<div class="script-item' + (isActive ? ' active' : '') + '" data-sid="' + id + '">' +
+                                                '<span class="script-item-name">' + safeName + '</span>' +
+                                                '<div class="script-item-actions">' +
+                                                    '<button class="script-act-btn edit" data-sid="' + id + '" title="Edit">EDIT</button>' +
+                                                    '<button class="script-act-btn apply" data-sid="' + id + '" title="Apply">APPLY</button>' +
+                                                    '<button class="script-act-btn delete" data-sid="' + id + '" title="Delete">DEL</button>' +
+                                                '</div></div>';
+                                        }).join('');
+                                        container.querySelectorAll('.script-item').forEach(function(row) {
+                                            row.addEventListener('click', function() {
+                                                loadScriptIntoEditor(row.getAttribute('data-sid'));
+                                            });
+                                        });
+                                        container.querySelectorAll('.script-act-btn.edit').forEach(function(btn) {
+                                            btn.addEventListener('click', function(e) {
+                                                e.stopPropagation();
+                                                loadScriptIntoEditor(btn.getAttribute('data-sid'));
+                                            });
+                                        });
+                                        container.querySelectorAll('.script-act-btn.apply').forEach(function(btn) {
+                                            btn.addEventListener('click', function(e) {
+                                                e.stopPropagation();
+                                                applyScriptById(btn.getAttribute('data-sid'));
+                                            });
+                                        });
+                                        container.querySelectorAll('.script-act-btn.delete').forEach(function(btn) {
+                                            btn.addEventListener('click', function(e) {
+                                                e.stopPropagation();
+                                                deleteScriptById(btn.getAttribute('data-sid'));
+                                            });
+                                        });
+                                    }
+                            
+                                    function loadScriptIntoEditor(id) {
+                                        const s = scriptLibrary[id];
+                                        if (!s) return;
+                                        selectedScriptId = id;
+                                        document.getElementById('script-name-input').value = s.name || '';
+                                        codeEditor.setValue(s.code || '');
+                                        renderScriptsList();
+                                    }
+                            
+                                    function applyScriptById(id) {
+                                        const s = scriptLibrary[id];
+                                        if (!s) return;
+                                        selectedScriptId = id;
+                                        document.getElementById('script-name-input').value = s.name || '';
+                                        codeEditor.setValue(s.code || '');
+                                        compileCloudIndicator(s.code);
+                                        if (window.cloudDB) window.cloudDB.saveScript(s.code);
+                                        renderScriptsList();
+                                    }
+                            
+                                    function deleteScriptById(id) {
+                                        if (!scriptLibrary[id]) return;
+                                        if (!confirm('Delete this script?')) return;
+                                        if (window.cloudDB && window.cloudDB.deleteScript) window.cloudDB.deleteScript(id);
+                                        delete scriptLibrary[id];
+                                        if (selectedScriptId === id) {
+                                            selectedScriptId = null;
+                                            document.getElementById('script-name-input').value = '';
+                                        }
+                                        renderScriptsList();
+                                    }
+                            
+                                    // UI Elements
                 const candleTimeInput = document.getElementById('candle-time');
         const balanceDisplay = document.getElementById('balance-display');
         const connStatus = document.getElementById('conn-status');
@@ -659,36 +807,73 @@
         
                     // Wait for module injection to complete and attach cloudDB listener
                     setTimeout(() => {
-                        if (window.cloudDB) {
-                            window.cloudDB.listenScripts((codeString) => {
-                                if (codeEditor.getValue() !== codeString) codeEditor.setValue(codeString);
-                                compileCloudIndicator(codeString);
-                            });
-                        } else {
-                            codeEditor.setValue(defaultScript);
-                            compileCloudIndicator(defaultScript);
-                        }
-                    }, 1000);
+                                            if (window.cloudDB) {
+                                                window.cloudDB.listenScripts((codeString) => {
+                                                    if (codeEditor.getValue() !== codeString) codeEditor.setValue(codeString);
+                                                    compileCloudIndicator(codeString);
+                                                });
+                                                if (window.cloudDB.listenLibrary) {
+                                                    window.cloudDB.listenLibrary((lib) => {
+                                                        scriptLibrary = lib || {};
+                                                        renderScriptsList();
+                                                    });
+                                                }
+                                            } else {
+                                                codeEditor.setValue(defaultScript);
+                                                compileCloudIndicator(defaultScript);
+                                            }
+                                        }, 1000);
                 });
         
                 document.getElementById('show-editor-btn').addEventListener('click', () => {
-                    document.getElementById('editorModal').style.display = 'flex';
-                    document.getElementById('editorModalOverlay').style.display = 'block';
-                    setTimeout(() => codeEditor.refresh(), 100);
-                });
-        
-                document.getElementById('close-editor-btn').addEventListener('click', () => {
-                    document.getElementById('editorModal').style.display = 'none';
-                    document.getElementById('editorModalOverlay').style.display = 'none';
-                });
-        
-                document.getElementById('save-script-btn').addEventListener('click', () => {
-                    const rawCode = codeEditor.getValue();
-                    if (window.cloudDB) window.cloudDB.saveScript(rawCode);
-                    compileCloudIndicator(rawCode);
-                    document.getElementById('editorModal').style.display = 'none';
-                    document.getElementById('editorModalOverlay').style.display = 'none';
-                });
+                                    document.getElementById('editorModal').style.display = 'flex';
+                                    document.getElementById('editorModalOverlay').style.display = 'block';
+                                    renderScriptsList();
+                                    setTimeout(() => codeEditor.refresh(), 100);
+                                });
+                        
+                                document.getElementById('close-editor-btn').addEventListener('click', () => {
+                                    document.getElementById('editorModal').style.display = 'none';
+                                    document.getElementById('editorModalOverlay').style.display = 'none';
+                                });
+                        
+                                document.getElementById('new-script-btn').addEventListener('click', () => {
+                                    selectedScriptId = null;
+                                    document.getElementById('script-name-input').value = '';
+                                    codeEditor.setValue('');
+                                    renderScriptsList();
+                                });
+                        
+                                document.getElementById('save-script-btn').addEventListener('click', () => {
+                                    const rawCode = codeEditor.getValue();
+                                    const nameInput = document.getElementById('script-name-input');
+                                    const name = nameInput.value.trim() || 'Untitled';
+                                    const id = selectedScriptId || ('s' + Date.now());
+                                    selectedScriptId = id;
+                                    nameInput.value = name;
+                                    scriptLibrary[id] = { name: name, code: rawCode, updated_at: Date.now() };
+                                    if (window.cloudDB && window.cloudDB.saveScriptToLibrary) window.cloudDB.saveScriptToLibrary(id, name, rawCode);
+                                    renderScriptsList();
+                                });
+                        
+                                document.getElementById('apply-script-btn').addEventListener('click', () => {
+                                    const rawCode = codeEditor.getValue();
+                                    compileCloudIndicator(rawCode);
+                                    if (window.cloudDB) window.cloudDB.saveScript(rawCode);
+                                    document.getElementById('editorModal').style.display = 'none';
+                                    document.getElementById('editorModalOverlay').style.display = 'none';
+                                });
+                        
+                                document.getElementById('delete-script-btn').addEventListener('click', () => {
+                                    if (!selectedScriptId) { alert('No saved script selected.'); return; }
+                                    if (!confirm('Delete this script?')) return;
+                                    if (window.cloudDB && window.cloudDB.deleteScript) window.cloudDB.deleteScript(selectedScriptId);
+                                    delete scriptLibrary[selectedScriptId];
+                                    selectedScriptId = null;
+                                    document.getElementById('script-name-input').value = '';
+                                    codeEditor.setValue('');
+                                    renderScriptsList();
+                                });
         
                 function applyZoom() {
             const el = document.querySelector('.dashboard-container');
