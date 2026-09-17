@@ -246,13 +246,13 @@
                     font-size: 10px;
                 }
                 .position-row .pr-detail {
-                    display: none;
-                    margin-top: 4px;
-                    padding-top: 4px;
-                    border-top: 1px dashed #333;
-                    flex-direction: column;
-                    gap: 3px;
-                }
+                                    display: flex;
+                                    margin-top: 4px;
+                                    padding-top: 4px;
+                                    border-top: 1px dashed #333;
+                                    flex-direction: column;
+                                    gap: 3px;
+                                }
                 .position-row.expanded .pr-detail { display: flex; }
                 .position-row .pr-detail-line {
                     display: flex;
@@ -452,7 +452,8 @@
         let openPositions = {}; // contract_id -> position object (from proposal_open_contract)
                 let closedPositions = []; // history of closed trades, newest first
                 let expandedPositionIds = {}; // contract_id -> true if row is expanded in the UI
-        let zoomLevel = 100;
+                        let _lastPanelGeom = null;
+                        let zoomLevel = 100;
         let marketData = {};
         let serverTimeOffset = 0;
         let pocSubscribed = false; // proposal_open_contract "subscribe all" active?
@@ -567,8 +568,31 @@
             }
         }
 
-        function drawChart() {
-            if (!ctx) return;
+        function positionFloatingPanel(chartAreaWidth, currentY, yAxisWidth, chartHeight) {
+                    const panel = document.getElementById('positionsPanel');
+                    if (!panel) return;
+                    const totalCandleWidth = 10;
+                    const lastCandleX = chartAreaWidth - totalCandleWidth;
+                    const panelWidth = panel.offsetWidth || 260;
+                    const panelHeight = panel.offsetHeight || 200;
+        
+                    let left = lastCandleX + 24;
+                    if (left + panelWidth > canvasWidth - yAxisWidth) {
+                        left = lastCandleX - panelWidth - 24;
+                    }
+                    if (left < 4) left = 4;
+        
+                    let top = currentY - (panelHeight / 2);
+                    if (top < 4) top = 4;
+                    if (top + panelHeight > chartHeight - 4) top = Math.max(4, chartHeight - panelHeight - 4);
+        
+                    panel.style.right = 'auto';
+                    panel.style.left = `${left}px`;
+                    panel.style.top = `${top}px`;
+                }
+        
+                function drawChart() {
+                    if (!ctx) return;
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
             const currentCandles = marketData[currentPair] || [];
@@ -729,8 +753,10 @@
 
             // --- DRAW CURRENT PRICE LABEL (no countdown timer - multiplier has no expiry) ---
             const currentPrice = lastCandle.close;
-            const currentY = getY(currentPrice);
-            const isUp = currentPrice >= lastCandle.open;
+                        const currentY = getY(currentPrice);
+                        _lastPanelGeom = { chartAreaWidth, currentY, yAxisWidth, chartHeight };
+                        positionFloatingPanel(chartAreaWidth, currentY, yAxisWidth, chartHeight);
+                        const isUp = currentPrice >= lastCandle.open;
             const boxColor = isUp ? '#0ecb81' : '#f6465d';
 
             ctx.strokeStyle = boxColor;
@@ -1006,8 +1032,9 @@
                     }
         
                     updateClosedListUI();
-                    updateTradeModalUI(positions);
-                }
+                                        updateTradeModalUI(positions);
+                                        if (_lastPanelGeom) positionFloatingPanel(_lastPanelGeom.chartAreaWidth, _lastPanelGeom.currentY, _lastPanelGeom.yAxisWidth, _lastPanelGeom.chartHeight);
+                                    }
         
                 function stake_fmt(p) {
                     return Number(p.buy_price).toFixed(2);
