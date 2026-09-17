@@ -300,47 +300,37 @@
                     text-align: center;
                     font-size: 10px;
                 }
-                .positions-tabs {
-                    display: flex;
-                    border-bottom: 1px solid #333;
-                }
-                .positions-tab {
-                    flex: 1;
-                    text-align: center;
-                    padding: 5px 0;
-                    font-size: 10px;
-                    font-weight: 800;
-                    color: #8892b0;
-                    cursor: pointer;
-                    background: transparent;
-                    border: none;
-                }
-                .positions-tab.active {
-                    color: #ffcc00;
-                    border-bottom: 2px solid #ffcc00;
-                }
-                .closed-row {
-                                    padding: 6px 8px;
-                                    border: 1px solid #1a1e3a;
-                                    border-radius: 6px;
+                .positions-header-bar {
                                     display: flex;
-                                    flex-direction: column;
-                                    gap: 2px;
-                                    flex: 0 0 230px;
-                                    width: 230px;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    padding: 5px 8px;
+                                    border-bottom: 1px solid #333;
                                 }
-                .closed-row .pr-top {
-                    display: flex;
-                    justify-content: space-between;
-                    font-weight: 800;
-                }
-                .closed-row .pr-detail-line {
-                    display: flex;
-                    justify-content: space-between;
-                    color: #c8d0e7;
-                    font-size: 10px;
-                }
-                .closed-row .pr-detail-line .lbl { color: #8892b0; }
+                                .positions-header-label {
+                                    font-size: 10px;
+                                    font-weight: 800;
+                                    color: #ffcc00;
+                                    letter-spacing: 0.05em;
+                                }
+                                .show-closed-btn {
+                                    background: transparent;
+                                    border: 1px solid #8892b0;
+                                    color: #8892b0;
+                                    border-radius: 4px;
+                                    font-size: 9px;
+                                    font-weight: 800;
+                                    padding: 3px 8px;
+                                    cursor: pointer;
+                                    letter-spacing: 0.05em;
+                                }
+                                .show-closed-btn.active {
+                                    color: #ffcc00;
+                                    border-color: #ffcc00;
+                                }
+                                .position-row.closed {
+                                    opacity: 0.6;
+                                }
 
         </style>
 </head>
@@ -360,21 +350,17 @@
 
             </div>
             
-                    <!-- Live open Multiplier positions -->
-                    <div class="positions-panel" id="positionsPanel">
-                        <div class="positions-tabs">
-                            <button class="positions-tab active" id="tabOpenBtn">OPEN</button>
-                            <button class="positions-tab" id="tabClosedBtn">CLOSED</button>
-                        </div>
-                        <div id="positionsList">
-                                        <div class="pos-track" id="positionsRow1"><div class="positions-empty">NO OPEN POSITIONS</div></div>
-                                        <div class="pos-track" id="positionsRow2"></div>
-                                    </div>
-                                    <div id="closedList" style="display:none;">
-                                        <div class="pos-track" id="closedRow1"><div class="positions-empty">NO CLOSED TRADES YET</div></div>
-                                        <div class="pos-track" id="closedRow2"></div>
-                                    </div>
-                    </div>
+                    <!-- Live Multiplier positions (open + closed unified) -->
+                                        <div class="positions-panel" id="positionsPanel">
+                                            <div class="positions-header-bar">
+                                                <span class="positions-header-label">POSITIONS</span>
+                                                <button class="show-closed-btn" id="showClosedBtn">SHOW CLOSED</button>
+                                            </div>
+                                            <div id="positionsList">
+                                                            <div class="pos-track" id="positionsRow1"><div class="positions-empty">NO POSITIONS</div></div>
+                                                            <div class="pos-track" id="positionsRow2"></div>
+                                                        </div>
+                                        </div>
             
                     <div class="bottom-controls" style="display: flex !important; justify-content: center; align-items: center; padding: 2px 10px; background: #000432; width: 100%; box-sizing: border-box; border-top: 1px solid #ffffff;">
             <div class="segmented-bar" style="display: flex; align-items: stretch; border: 1px solid #ffffff; border-radius: 3px; overflow: hidden; height: 36px;">
@@ -491,9 +477,9 @@
                 let currentAccountType = "demo";
         let tickSubscriptions = {};
         let payoutSubscriptions = {};
-        let openPositions = {}; // contract_id -> position object (from proposal_open_contract)
-                let closedPositions = []; // history of closed trades, newest first
-                let expandedPositionIds = {}; // contract_id -> true if row is expanded in the UI
+        let positions = {}; // contract_id -> position object (open or closed, from proposal_open_contract)
+                        let expandedPositionIds = {}; // contract_id -> true if row is expanded in the UI
+                        let showClosed = false; // whether closed trades are appended to the visible list
                         let zoomLevel = 100;
         let marketData = {};
         let serverTimeOffset = 0;
@@ -741,7 +727,7 @@
             }
 
             // --- DRAW ENTRY LINES FOR OPEN MULTIPLIER POSITIONS ON THIS SYMBOL ---
-            const openForSymbol = Object.values(openPositions).filter(p => p.underlying_symbol === currentPair && p.status === 'open');
+                        const openForSymbol = Object.values(positions).filter(p => p.underlying_symbol === currentPair && isPositionOpen(p));
             if (openForSymbol.length > 0 && lastCandle) {
                 const lastCandleX = chartAreaWidth - totalCandleWidth;
                 const lastCandleCenterX = lastCandleX + (candleWidth / 2);
@@ -968,25 +954,16 @@
                     console.log(`Position closed: contract_id ${data.sell.contract_id} | sold for $${data.sell.sold_for}`);
                 }
 
-                // Real-time open position state (multiplier P&L, status, entry spot, etc.)
-                                if (data.proposal_open_contract) {
-                                    const c = data.proposal_open_contract;
-                                    if (c.contract_id) {
-                                        const wasOpen = !!openPositions[c.contract_id];
-                                        if (c.is_sold || c.status === 'sold' || c.status === 'won' || c.status === 'lost') {
-                                            if (wasOpen || !closedPositions.find(x => x.contract_id === c.contract_id)) {
-                                                closedPositions.unshift(c);
-                                                if (closedPositions.length > 50) closedPositions.pop();
-                                            }
-                                            delete openPositions[c.contract_id];
-                                            delete expandedPositionIds[c.contract_id];
-                                        } else {
-                                            openPositions[c.contract_id] = c;
-                                        }
-                                        updatePositionsUI();
-                                        if (c.underlying_symbol === currentPair) drawChart();
-                                    }
-                                }
+                // Real-time position state (multiplier P&L, status, entry spot, etc.) — unified open+closed store
+                                                if (data.proposal_open_contract) {
+                                                    const c = data.proposal_open_contract;
+                                                    if (c.contract_id) {
+                                                        positions[c.contract_id] = c;
+                                                        pruneClosedPositions();
+                                                        updatePositionsUI();
+                                                        if (c.underlying_symbol === currentPair) drawChart();
+                                                    }
+                                                }
             };
 
             ws.onclose = () => {
@@ -1007,8 +984,13 @@
             pocSubscribed = true;
         }
 
-        // --- Derived multiplier metrics not directly given by the API ---
-                function computeDerivedMetrics(p) {
+        // --- Position state helper (single source of truth for open vs closed) ---
+                        function isPositionOpen(p) {
+                            return !(p.is_sold || p.status === 'sold' || p.status === 'won' || p.status === 'lost');
+                        }
+        
+                        // --- Derived multiplier metrics not directly given by the API ---
+                        function computeDerivedMetrics(p) {
                     const entry = Number(p.entry_spot);
                     const mult = Number(p.multiplier);
                     const stake = Number(p.buy_price);
@@ -1046,115 +1028,97 @@
                     return `${h}${m}${s}`;
                 }
         
-                // --- OPEN POSITIONS UI (floating panel + modal) ---
-                                function updatePositionsUI() {
-                                    const positions = Object.values(openPositions);
-                                    const row1El = document.getElementById('positionsRow1');
-                                    const row2El = document.getElementById('positionsRow2');
-                        
-                                    if (positions.length === 0) {
-                                        row1El.innerHTML = '<div class="positions-empty">NO OPEN POSITIONS</div>';
-                                        row2El.innerHTML = '';
-                                    } else {
-                                        const cards = positions.map(p => {
-                                            const profit = Number(p.profit) || 0;
-                                            const color = profit >= 0 ? '#0ecb81' : '#f6465d';
-                                            const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
-                                            const { breakeven, stopOut } = computeDerivedMetrics(p);
-                                            const entryTime = formatEpoch(p.date_start || p.purchase_time);
-                                            const isExpanded = !!expandedPositionIds[p.contract_id];
-                                            const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
-                        
-                                            return `
-                                                <div class="position-row${isExpanded ? ' expanded' : ''}" data-cid="${p.contract_id}">
-                                                    <div class="pr-top">
-                                                        <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
-                                                        <span style="color:${color};">$${profit.toFixed(2)}</span>
-                                                    </div>
-                                                    <div class="pr-bottom">
-                                                        <span>Stake $${stake_fmt(p)}</span>
-                                                        <span>Bid $${Number(p.bid_price).toFixed(2)}</span>
-                                                    </div>
-                                                    <div class="pr-detail">
-                                                        <div class="pr-detail-line"><span class="lbl">Trade Amount</span><span>$${stake_fmt(p)}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Leverage</span><span>x${p.multiplier}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Forecast</span><span style="color:${dirLabel === 'UP' ? '#0ecb81' : '#f6465d'}">${dirLabel}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Entry Time</span><span>${entryTime}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Entry Price</span><span>${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Liquidation Price</span><span style="color:#f6465d;">${stopOut != null ? stopOut.toFixed(dec) : '--'}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Breakeven (fee-covered) Price</span><span style="color:#ffcc00;">${breakeven != null ? breakeven.toFixed(dec) : '--'}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Live Bid Value</span><span>$${Number(p.bid_price).toFixed(2)}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Live P&L</span><span style="color:${color};">$${profit.toFixed(2)}</span></div>
-                                                        <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || 'open').toUpperCase()}</span></div>
-                                                    </div>
-                                                    <button class="pr-close" data-cid="${p.contract_id}">CLOSE</button>
-                                                </div>`;
-                                        });
-                                        row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
-                                        row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
-                                        positionsList.querySelectorAll('.position-row').forEach(row => {
-                                            row.addEventListener('click', (e) => {
-                                                if (e.target.classList.contains('pr-close')) return;
-                                                const cid = row.getAttribute('data-cid');
-                                                expandedPositionIds[cid] = !expandedPositionIds[cid];
-                                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
-                                            });
-                                        });
-                                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
-                                            btn.addEventListener('click', (e) => {
-                                                e.stopPropagation();
-                                                closePosition(Number(btn.getAttribute('data-cid')));
-                                            });
-                                        });
-                                    }
-                        
-                                    updateClosedListUI();
-                                    updateTradeModalUI(positions);
-                                }
-                        
-                                function stake_fmt(p) {
-                                    return Number(p.buy_price).toFixed(2);
-                                }
-                        
-                                function updateClosedListUI() {
-                                    const row1El = document.getElementById('closedRow1');
-                                    const row2El = document.getElementById('closedRow2');
-                                    if (!row1El || !row2El) return;
-                                    if (closedPositions.length === 0) {
-                                        row1El.innerHTML = '<div class="positions-empty">NO CLOSED TRADES YET</div>';
-                                        row2El.innerHTML = '';
-                                        return;
-                                    }
-                                    const cards = closedPositions.map(p => {
-                                        const profit = Number(p.profit) || 0;
-                                        const color = profit >= 0 ? '#0ecb81' : '#f6465d';
-                                        const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
-                                        const entryTime = formatEpoch(p.date_start || p.purchase_time);
-                                        const closeTime = formatEpoch(p.sell_time || p.exit_spot_time);
-                                        const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
-                                        return `
-                                            <div class="closed-row">
-                                                <div class="pr-top">
-                                                    <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
-                                                    <span style="color:${color};">$${profit.toFixed(2)}</span>
-                                                </div>
-                                                <div class="pr-detail-line"><span class="lbl">Entry</span><span>${entryTime} @ ${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
-                                                <div class="pr-detail-line"><span class="lbl">Close</span><span>${closeTime} @ ${p.exit_spot != null ? Number(p.exit_spot).toFixed(dec) : '--'}</span></div>
-                                                <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || '--').toUpperCase()}</span></div>
-                                            </div>`;
-                                    });
-                                    row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
-                                    row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
-                                }
+                // --- POSITIONS UI (unified open + closed, floating panel + modal) ---
+                                                function renderPositionCard(p) {
+                                                    const open = isPositionOpen(p);
+                                                    const profit = Number(p.profit) || 0;
+                                                    const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                                                    const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                                                    const { breakeven } = computeDerivedMetrics(p);
+                                                    const entryTime = formatEpoch(p.date_start || p.purchase_time);
+                                                    const isExpanded = !!expandedPositionIds[p.contract_id];
+                                                    const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
+                                                    const closingPrice = open ? '--' : (p.exit_spot != null ? Number(p.exit_spot).toFixed(dec) : '--');
+                                                    const statusLine = open ? ('Bid $' + Number(p.bid_price).toFixed(2)) : (p.status || '--').toUpperCase();
+                                                    const closeBtn = open ? ('<button class="pr-close" data-cid="' + p.contract_id + '">CLOSE</button>') : '';
+                                        
+                                                    return `
+                                                        <div class="position-row${isExpanded ? ' expanded' : ''}${open ? '' : ' closed'}" data-cid="${p.contract_id}">
+                                                            <div class="pr-top">
+                                                                <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
+                                                                <span style="color:${color};">$${profit.toFixed(2)}</span>
+                                                            </div>
+                                                            <div class="pr-bottom">
+                                                                <span>Stake $${stake_fmt(p)}</span>
+                                                                <span>${statusLine}</span>
+                                                            </div>
+                                                            <div class="pr-detail">
+                                                                <div class="pr-detail-line"><span class="lbl">Trade Amount (Live P/L)</span><span style="color:${color};">$${stake_fmt(p)} ($${profit.toFixed(2)})</span></div>
+                                                                <div class="pr-detail-line"><span class="lbl">Entry Date & Time</span><span>${entryTime}</span></div>
+                                                                <div class="pr-detail-line"><span class="lbl">Leverage</span><span>x${p.multiplier}</span></div>
+                                                                <div class="pr-detail-line"><span class="lbl">Entry Price</span><span>${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
+                                                                <div class="pr-detail-line"><span class="lbl">Closing Price</span><span>${closingPrice}</span></div>
+                                                                <div class="pr-detail-line"><span class="lbl">Breakeven (Fee Cover) Price</span><span style="color:#ffcc00;">${breakeven != null ? breakeven.toFixed(dec) : '--'}</span></div>
+                                                            </div>
+                                                            ${closeBtn}
+                                                        </div>`;
+                                                }
+                                        
+                                                function pruneClosedPositions() {
+                                                    const closedIds = Object.keys(positions)
+                                                        .filter(id => !isPositionOpen(positions[id]))
+                                                        .sort((a, b) => (positions[b].date_start || 0) - (positions[a].date_start || 0));
+                                                    if (closedIds.length > 50) {
+                                                        closedIds.slice(50).forEach(id => { delete positions[id]; delete expandedPositionIds[id]; });
+                                                    }
+                                                }
+                                        
+                                                function updatePositionsUI() {
+                                                    const all = Object.values(positions).sort((a, b) => (b.date_start || 0) - (a.date_start || 0));
+                                                    const openList = all.filter(isPositionOpen);
+                                                    const visible = showClosed ? all : openList;
+                                        
+                                                    const row1El = document.getElementById('positionsRow1');
+                                                    const row2El = document.getElementById('positionsRow2');
+                                        
+                                                    if (visible.length === 0) {
+                                                        row1El.innerHTML = '<div class="positions-empty">NO POSITIONS</div>';
+                                                        row2El.innerHTML = '';
+                                                    } else {
+                                                        const cards = visible.map(renderPositionCard);
+                                                        row1El.innerHTML = cards.filter((c, i) => i % 2 === 0).join('');
+                                                        row2El.innerHTML = cards.filter((c, i) => i % 2 === 1).join('');
+                                                        positionsList.querySelectorAll('.position-row').forEach(row => {
+                                                            row.addEventListener('click', (e) => {
+                                                                if (e.target.classList.contains('pr-close')) return;
+                                                                const cid = row.getAttribute('data-cid');
+                                                                expandedPositionIds[cid] = !expandedPositionIds[cid];
+                                                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
+                                                            });
+                                                        });
+                                                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
+                                                            btn.addEventListener('click', (e) => {
+                                                                e.stopPropagation();
+                                                                closePosition(Number(btn.getAttribute('data-cid')));
+                                                            });
+                                                        });
+                                                    }
+                                        
+                                                    updateTradeModalUI(openList);
+                                                }
+                                        
+                                                function stake_fmt(p) {
+                                                    return Number(p.buy_price).toFixed(2);
+                                                }
 
-        function updateTradeModalUI(positions) {
-            const list = document.getElementById('tradeList');
-            if (!positions || positions.length === 0) {
-                list.innerHTML = '<div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO POSITIONS OPEN</div>';
-                return;
-            }
-            let html = '';
-            positions.forEach(p => {
+        function updateTradeModalUI(posList) {
+                    const list = document.getElementById('tradeList');
+                    if (!posList || posList.length === 0) {
+                        list.innerHTML = '<div style="color:#8892b0; text-align:center; padding:20px; font-size:12px; font-weight:bold; letter-spacing:0.05em;">NO POSITIONS OPEN</div>';
+                        return;
+                    }
+                    let html = '';
+                    posList.forEach(p => {
                 const profit = Number(p.profit) || 0;
                 const color = profit >= 0 ? '#0ecb81' : '#f6465d';
                 const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
@@ -1176,24 +1140,19 @@
             });
         }
 
-        document.getElementById('tabOpenBtn').addEventListener('click', () => {
-                    document.getElementById('tabOpenBtn').classList.add('active');
-                    document.getElementById('tabClosedBtn').classList.remove('active');
-                    positionsList.style.display = '';
-                    document.getElementById('closedList').style.display = 'none';
-                });
-                document.getElementById('tabClosedBtn').addEventListener('click', () => {
-                    document.getElementById('tabClosedBtn').classList.add('active');
-                    document.getElementById('tabOpenBtn').classList.remove('active');
-                    positionsList.style.display = 'none';
-                    document.getElementById('closedList').style.display = '';
-                });
-        
-                document.getElementById('show-trades-btn').addEventListener('click', () => {
-                    document.getElementById('tradeModal').style.display = 'flex';
-                    document.getElementById('tradeModalOverlay').style.display = 'block';
-                    updateTradeModalUI(Object.values(openPositions));
-                });
+        document.getElementById('showClosedBtn').addEventListener('click', () => {
+                            showClosed = !showClosed;
+                            const btn = document.getElementById('showClosedBtn');
+                            btn.innerText = showClosed ? 'HIDE CLOSED' : 'SHOW CLOSED';
+                            btn.classList.toggle('active', showClosed);
+                            updatePositionsUI();
+                        });
+                
+                        document.getElementById('show-trades-btn').addEventListener('click', () => {
+                            document.getElementById('tradeModal').style.display = 'flex';
+                            document.getElementById('tradeModalOverlay').style.display = 'block';
+                            updateTradeModalUI(Object.values(positions).filter(isPositionOpen));
+                        });
         document.getElementById('close-modal-btn').addEventListener('click', () => {
             document.getElementById('tradeModal').style.display = 'none';
             document.getElementById('tradeModalOverlay').style.display = 'none';
@@ -1488,10 +1447,10 @@
             updateAccountToggleUI();
             balanceDisplay.innerText = 'Loading...';
             tickSubscriptions = {};
-            payoutSubscriptions = {};
-            openPositions = {};
-            marketData = {};
-            pocSubscribed = false;
+                        payoutSubscriptions = {};
+                        positions = {};
+                        marketData = {};
+                        pocSubscribed = false;
             if (ws) {
                 ws.onclose = null;
                 ws.close();
