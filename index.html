@@ -347,14 +347,15 @@
             <div id="loading-text">LOADING MARKET DATA...</div>
             <button id="fullscreen-btn" aria-label="Toggle Fullscreen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></button>
             <div id="zoom-controls">
-                <button id="zoom-in-btn" class="zoom-btn" aria-label="Zoom In">+</button>
-                <button id="zoom-out-btn" class="zoom-btn" aria-label="Zoom Out">&minus;</button>
-            </div>
-            <div id="canvas-wrapper">
-                <canvas id="custom-chart"></canvas>
-            </div>
-
-            </div>
+                            <button id="zoom-in-btn" class="zoom-btn" aria-label="Zoom In">+</button>
+                            <button id="zoom-out-btn" class="zoom-btn" aria-label="Zoom Out">&minus;</button>
+                        </div>
+                        <div id="canvas-wrapper">
+                            <canvas id="custom-chart"></canvas>
+                            <div id="backtest-panel" style="display:none; position:absolute; top:10px; left:10px; background:rgba(0,4,50,0.85); border:1px solid #38bdf8; border-radius:6px; padding:10px; font-size:11px; z-index:15; pointer-events:none; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+                        </div>
+            
+                        </div>
             
                     <!-- Live Multiplier positions (open + closed unified) -->
                                         <div class="positions-panel" id="positionsPanel">
@@ -483,50 +484,69 @@
         </div>
         
                 <div id="editorModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,4,50,0.8); z-index:2005;"></div>
-                <div id="editorModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90vw; max-width:600px; height:600px; background:#000432; border-radius: 20px; z-index:2006; flex-direction:column; overflow: hidden; border: 1px solid #ffffff;">
-                    <div style="padding:15px; background:#000432; color:#38bdf8; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; z-index: 10; border-bottom: 1px solid #333;">
-                        <span>CUSTOM INDICATOR EDITOR</span>
-                        <button id="close-editor-btn" style="background:transparent; border:none; color:#ffcc00; cursor:pointer; font-size:16px;">✕</button>
-                    </div>
-                    <div style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
-                        <textarea id="code-editor-textarea"></textarea>
-                    </div>
-                    <div style="padding:10px; border-top: 1px solid #333; display:flex; justify-content:flex-end;">
-                        <button id="save-script-btn" style="background:#0ecb81; color:#000432; border:none; padding:8px 16px; font-weight:bold; border-radius:6px; cursor:pointer;">Save & Compile</button>
-                    </div>
-                </div>
+                <div id="editorModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:95vw; max-width:800px; height:80vh; max-height:800px; background:#000432; border-radius: 12px; z-index:2006; flex-direction:column; overflow: hidden; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                                    <div style="padding:10px 15px; background:#1e293b; color:#38bdf8; font-weight:800; font-size:12px; letter-spacing:0.1em; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #334155;">
+                                        <span>STRATEGY EDITOR</span>
+                                        <button id="close-editor-btn" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:16px;">✕</button>
+                                    </div>
+                                    <div style="padding:8px 15px; background:#0f172a; display:flex; flex-wrap:wrap; gap:10px; align-items:center; border-bottom: 1px solid #334155;">
+                                        <select id="script-list-dropdown" style="width:140px; background:#1e293b; color:#f8fafc; border:1px solid #334155; padding:6px; border-radius:4px; outline:none; font-size:12px;">
+                                            <option value="">-- Select --</option>
+                                        </select>
+                                        <input type="text" id="script-name-input" placeholder="Strategy Name" style="width:140px; background:#1e293b; color:#f8fafc; border:1px solid #334155; padding:6px; border-radius:4px; outline:none; font-size:12px;">
+                                        
+                                        <button id="btn-new-script" class="action-btn" style="background:transparent; color:#38bdf8; border-color:#38bdf8;">New</button>
+                                        <button id="btn-save-script" class="action-btn" style="background:transparent; color:#0ecb81; border-color:#0ecb81;">Save</button>
+                                        <button id="btn-delete-script" class="action-btn" style="background:transparent; color:#ef4444; border-color:#ef4444;">Delete</button>
+                                        <div style="flex:1;"></div>
+                                        <button id="btn-apply-script" class="action-btn" style="background:#38bdf8; color:#0f172a; border-color:#38bdf8;">Apply to Chart</button>
+                                    </div>
+                                    <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; position:relative;">
+                                        <textarea id="code-editor-textarea"></textarea>
+                                    </div>
+                                </div>
         
             <script type="module">
-                import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-                import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        
-                const firebaseConfig = {
-                    apiKey: "AIzaSyAYHA8Qw3Qw3Qzbyg8MtjrSKcJusNi4VaA6V4",
-                    authDomain: "system-data-bf026.firebaseapp.com",
-                    databaseURL: "https://system-data-bf026-default-rtdb.asia-southeast1.firebasedatabase.app",
-                    projectId: "system-data-bf026",
-                    storageBucket: "system-data-bf026.firebasestorage.app",
-                    messagingSenderId: "718302899022",
-                    appId: "1:718302899022:web:f1675dbcc293e138c68c1f"
-                };
-                const fbApp = initializeApp(firebaseConfig);
-                const db = getDatabase(fbApp);
-                const SCRIPTS_REF = ref(db, 'terminal_scripts/active');
-        
-                window.cloudDB = {
-                    saveScript: (codeString) => {
-                        set(SCRIPTS_REF, { code: codeString, updated_at: Date.now() })
-                            .then(() => console.log("Script saved to Firebase."))
-                            .catch(e => console.error("Firebase save failed:", e));
-                    },
-                    listenScripts: (callback) => {
-                        onValue(SCRIPTS_REF, (snap) => {
-                            const val = snap.val();
-                            if (val && val.code) callback(val.code);
-                        });
-                    }
-                };
-            </script>
+                            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+                            import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+                    
+                            const firebaseConfig = {
+                                apiKey: "AIzaSyAYHA8Qw3Qw3Qzbyg8MtjrSKcJusNi4VaA6V4",
+                                authDomain: "system-data-bf026.firebaseapp.com",
+                                databaseURL: "https://system-data-bf026-default-rtdb.asia-southeast1.firebasedatabase.app",
+                                projectId: "system-data-bf026",
+                                storageBucket: "system-data-bf026.firebasestorage.app",
+                                messagingSenderId: "718302899022",
+                                appId: "1:718302899022:web:f1675dbcc293e138c68c1f"
+                            };
+                            const fbApp = initializeApp(firebaseConfig);
+                            const db = getDatabase(fbApp);
+                            const LIBRARY_REF = ref(db, 'terminal_scripts/library');
+                            const ACTIVE_REF = ref(db, 'terminal_scripts/active_id');
+                    
+                            window.cloudDB = {
+                                saveScript: (id, name, codeString) => {
+                                    set(ref(db, 'terminal_scripts/library/' + id), { name: name, code: codeString, updated_at: Date.now() })
+                                        .catch(e => console.error("Firebase save failed:", e));
+                                },
+                                deleteScript: (id) => {
+                                    remove(ref(db, 'terminal_scripts/library/' + id)).catch(e => console.error("Firebase delete failed:", e));
+                                },
+                                setActiveScript: (id) => {
+                                    set(ACTIVE_REF, id);
+                                },
+                                listenLibrary: (callback) => {
+                                    onValue(LIBRARY_REF, (snap) => {
+                                        callback(snap.val() || {});
+                                    });
+                                },
+                                listenActive: (callback) => {
+                                    onValue(ACTIVE_REF, (snap) => {
+                                        callback(snap.val());
+                                    });
+                                }
+                            };
+                        </script>
         
             <script>
                 // ================= DERIV MULTIPLIER TRADING (api.derivws.com) =================
@@ -574,37 +594,98 @@
             "frxNZDJPY", "frxNZDUSD",
             "frxUSDCAD", "frxUSDCHF", "frxUSDJPY",
             "frxXPTUSD"
-        ];
-
-        // --- CUSTOM INDICATOR ENGINE ---
-                class TradingIndicator {
-                    constructor(name, params) {
-                        this.name = name;
-                        this.params = params;
-                        this.data = [];
-                    }
-                    calculate(candles) { throw new Error("calculate() not implemented"); }
-                    draw(ctx, chartParams) { throw new Error("draw() not implemented"); }
-                }
-                let activeIndicators = [];
-        
-                function compileCloudIndicator(codeString) {
-                    try {
-                        const scriptFactory = new Function('TradingIndicator', codeString);
-                        const CustomIndicatorClass = scriptFactory(TradingIndicator);
-                        const liveIndicator = new CustomIndicatorClass();
-                        activeIndicators = [liveIndicator]; // Replaces existing so you only run the latest edit
-                        console.log(`Loaded custom indicator: ${liveIndicator.name}`);
-                        
-                        // Force recalculation if we already have chart data
-                        if (marketData[currentPair] && marketData[currentPair].length > 0) {
-                            activeIndicators.forEach(ind => ind.calculate(marketData[currentPair]));
-                            drawChart();
+                    ];
+            
+                    function updateBacktestUI(name, stats) {
+                        const panel = document.getElementById('backtest-panel');
+                        if (!panel) return;
+                        if (stats.trades === 0) {
+                            panel.style.display = 'none';
+                            return;
                         }
-                    } catch (error) {
-                        console.error("Indicator Compilation Error:", error);
+                        panel.style.display = 'block';
+                        const winRate = Math.round((stats.wins / stats.trades) * 100) || 0;
+                        const pnlColor = stats.netPoints >= 0 ? '#0ecb81' : '#f6465d';
+                        panel.innerHTML = `
+                            <div style="color:#38bdf8; font-weight:bold; margin-bottom:6px; font-size:12px;">${name}</div>
+                            <div style="display:flex; justify-content:space-between; width:120px; margin-bottom:2px;"><span style="color:#8892b0">Trades:</span> <span style="color:#fff; font-weight:bold;">${stats.trades}</span></div>
+                            <div style="display:flex; justify-content:space-between; width:120px; margin-bottom:2px;"><span style="color:#8892b0">Win Rate:</span> <span style="color:${winRate >= 50 ? '#0ecb81' : '#f6465d'}; font-weight:bold;">${winRate}%</span></div>
+                            <div style="display:flex; justify-content:space-between; width:120px;"><span style="color:#8892b0">Net PnL:</span> <span style="color:${pnlColor}; font-weight:bold;">${stats.netPoints > 0 ? '+' : ''}${stats.netPoints.toFixed(2)}</span></div>
+                        `;
                     }
-                }
+            
+                    // --- CUSTOM STRATEGY ENGINE ---
+                    class TradingIndicator {
+                        constructor(name, params) {
+                            this.name = name;
+                            this.params = params;
+                            this.data = [];
+                            this.signals = []; // Array of 'buy', 'sell', or null 
+                            this.backtest = { trades: 0, wins: 0, losses: 0, netPoints: 0 };
+                        }
+                        calculate(candles) { throw new Error("calculate() not implemented"); }
+                        draw(ctx, chartParams) { throw new Error("draw() not implemented"); }
+            
+                        drawSignals(ctx, { visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth }) {
+                            ctx.font = '14px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            for (let i = 0; i < visibleCandles.length; i++) {
+                                const signal = this.signals[sliceStart + i];
+                                if (!signal) continue;
+                                const c = visibleCandles[i];
+                                const x = chartAreaWidth - ((visibleCandles.length - i) * totalCandleWidth) + (totalCandleWidth / 2);
+                                if (signal === 'buy') {
+                                    ctx.fillStyle = '#0ecb81';
+                                    ctx.fillText('▲', x, getY(c.low) + 18);
+                                } else if (signal === 'sell') {
+                                    ctx.fillStyle = '#f6465d';
+                                    ctx.fillText('▼', x, getY(c.high) - 18);
+                                }
+                            }
+                        }
+            
+                        runBacktest(candles) {
+                            this.backtest = { trades: 0, wins: 0, losses: 0, netPoints: 0 };
+                            let openPos = null;
+                            for (let i = 0; i < candles.length; i++) {
+                                const signal = this.signals[i];
+                                const c = candles[i];
+                                if (openPos && signal && signal !== openPos.type) {
+                                    let pnl = openPos.type === 'buy' ? (c.close - openPos.price) : (openPos.price - c.close);
+                                    this.backtest.trades++;
+                                    this.backtest.netPoints += pnl;
+                                    if (pnl > 0) this.backtest.wins++; else this.backtest.losses++;
+                                    openPos = null;
+                                }
+                                if (!openPos && signal) openPos = { type: signal, price: c.close };
+                            }
+                            updateBacktestUI(this.name, this.backtest);
+                        }
+                    }
+            
+                    let activeIndicators = [];
+                    
+                    function compileCloudIndicator(codeString) {
+                        try {
+                            const scriptFactory = new Function('TradingIndicator', codeString);
+                            const CustomIndicatorClass = scriptFactory(TradingIndicator);
+                            const liveIndicator = new CustomIndicatorClass();
+                            activeIndicators = [liveIndicator]; // Replaces existing so you only run the latest edit
+                            console.log(`Loaded custom strategy: ${liveIndicator.name}`);
+                            
+                            // Force recalculation and backtest if we already have chart data
+                            if (marketData[currentPair] && marketData[currentPair].length > 0) {
+                                activeIndicators.forEach(ind => {
+                                    ind.calculate(marketData[currentPair]);
+                                    if (typeof ind.runBacktest === 'function') ind.runBacktest(marketData[currentPair]);
+                                });
+                                drawChart();
+                            }
+                        } catch (error) {
+                            console.error("Indicator Compilation Error:", error);
+                        }
+                    }
         
                 // UI Elements
                 const candleTimeInput = document.getElementById('candle-time');
@@ -625,72 +706,175 @@
                         theme: "monokai"
                     });
                     codeEditor.setSize("100%", "100%");
-                    
-                    const defaultScript = `class CloudSMA extends TradingIndicator {
-            constructor() { 
-                super('Cloud SMA', { length: 10 }); 
-            }
-            calculate(candles) { 
-                this.data = []; 
-                for (let i = 0; i < candles.length; i++) {
-                    if (i < this.params.length - 1) { this.data.push(null); continue; }
-                    let sum = 0;
-                    for (let j = 0; j < this.params.length; j++) sum += candles[i - j].close;
-                    this.data.push(sum / this.params.length);
-                }
-            }
-            draw(ctx, { visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth }) {
-                ctx.strokeStyle = '#00e5ff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                let started = false;
-                for (let i = 0; i < visibleCandles.length; i++) {
-                    const val = this.data[sliceStart + i];
-                    if (val === null) continue;
-                    const x = chartAreaWidth - ((visibleCandles.length - i) * totalCandleWidth) + (totalCandleWidth / 2);
-                    const y = getY(val);
-                    if (!started) { ctx.moveTo(x, y); started = true; } 
-                    else { ctx.lineTo(x, y); }
-                }
-                ctx.stroke();
-            }
-        }
-        return CloudSMA;`;
-        
-                    // Wait for module injection to complete and attach cloudDB listener
-                    setTimeout(() => {
-                        if (window.cloudDB) {
-                            window.cloudDB.listenScripts((codeString) => {
-                                if (codeEditor.getValue() !== codeString) codeEditor.setValue(codeString);
-                                compileCloudIndicator(codeString);
-                            });
-                        } else {
-                            codeEditor.setValue(defaultScript);
-                            compileCloudIndicator(defaultScript);
+                                        
+                                        const defaultScript = `class SMACrossover extends TradingIndicator {
+                        constructor() { super('SMA Crossover Strategy', { fast: 5, slow: 15 }); }
+                        
+                        calculate(candles) { 
+                            this.data = []; this.signals = []; 
+                            let prevFast = null, prevSlow = null;
+                            
+                            for (let i = 0; i < candles.length; i++) {
+                                if (i < this.params.slow - 1) { 
+                                    this.data.push(null); this.signals.push(null); 
+                                    continue; 
+                                }
+                                let sumFast = 0, sumSlow = 0;
+                                for (let j = 0; j < this.params.fast; j++) sumFast += candles[i - j].close;
+                                for (let j = 0; j < this.params.slow; j++) sumSlow += candles[i - j].close;
+                                
+                                let fastSMA = sumFast / this.params.fast;
+                                let slowSMA = sumSlow / this.params.slow;
+                                this.data.push({ fast: fastSMA, slow: slowSMA });
+                                
+                                // Generate Signals
+                                let signal = null;
+                                if (prevFast !== null) {
+                                    if (prevFast <= prevSlow && fastSMA > slowSMA) signal = 'buy';
+                                    if (prevFast >= prevSlow && fastSMA < slowSMA) signal = 'sell';
+                                }
+                                this.signals.push(signal);
+                                prevFast = fastSMA; prevSlow = slowSMA;
+                            }
                         }
-                    }, 1000);
-                });
-        
-                document.getElementById('show-editor-btn').addEventListener('click', () => {
-                    document.getElementById('editorModal').style.display = 'flex';
-                    document.getElementById('editorModalOverlay').style.display = 'block';
-                    setTimeout(() => codeEditor.refresh(), 100);
-                });
-        
-                document.getElementById('close-editor-btn').addEventListener('click', () => {
-                    document.getElementById('editorModal').style.display = 'none';
-                    document.getElementById('editorModalOverlay').style.display = 'none';
-                });
-        
-                document.getElementById('save-script-btn').addEventListener('click', () => {
-                    const rawCode = codeEditor.getValue();
-                    if (window.cloudDB) window.cloudDB.saveScript(rawCode);
-                    compileCloudIndicator(rawCode);
-                    document.getElementById('editorModal').style.display = 'none';
-                    document.getElementById('editorModalOverlay').style.display = 'none';
-                });
-        
-                function applyZoom() {
+                        
+                        draw(ctx, { visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth }) {
+                            // Draw Fast Line
+                            ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.beginPath();
+                            let started = false;
+                            for (let i = 0; i < visibleCandles.length; i++) {
+                                const val = this.data[sliceStart + i];
+                                if (!val) continue;
+                                const x = chartAreaWidth - ((visibleCandles.length - i) * totalCandleWidth) + (totalCandleWidth / 2);
+                                if (!started) { ctx.moveTo(x, getY(val.fast)); started = true; } 
+                                else ctx.lineTo(x, getY(val.fast));
+                            }
+                            ctx.stroke();
+                    
+                            // Draw Slow Line
+                            ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 2; ctx.beginPath();
+                            started = false;
+                            for (let i = 0; i < visibleCandles.length; i++) {
+                                const val = this.data[sliceStart + i];
+                                if (!val) continue;
+                                const x = chartAreaWidth - ((visibleCandles.length - i) * totalCandleWidth) + (totalCandleWidth / 2);
+                                if (!started) { ctx.moveTo(x, getY(val.slow)); started = true; } 
+                                else ctx.lineTo(x, getY(val.slow));
+                            }
+                            ctx.stroke();
+                        }
+                    }
+                    return SMACrossover;`;
+                            
+                                        let scriptsLibrary = {};
+                                                            let currentEditId = null;
+                                                            let activeAppliedId = null;
+                                        
+                                                            function generateId() { return 'script_' + Date.now() + '_' + Math.floor(Math.random()*1000); }
+                                        
+                                                            const scriptDropdown = document.getElementById('script-list-dropdown');
+                                                            const scriptNameInput = document.getElementById('script-name-input');
+                                        
+                                                            function updateScriptDropdown() {
+                                                                scriptDropdown.innerHTML = '<option value="">-- Select Strategy --</option>';
+                                                                for (let id in scriptsLibrary) {
+                                                                    const opt = document.createElement('option');
+                                                                    opt.value = id;
+                                                                    opt.textContent = scriptsLibrary[id].name || 'Unnamed Strategy';
+                                                                    scriptDropdown.appendChild(opt);
+                                                                }
+                                                                if (currentEditId) scriptDropdown.value = currentEditId;
+                                                            }
+                                        
+                                                            function loadScriptIntoEditor(id) {
+                                                                if (!scriptsLibrary[id]) return;
+                                                                currentEditId = id;
+                                                                scriptNameInput.value = scriptsLibrary[id].name || '';
+                                                                if (codeEditor.getValue() !== scriptsLibrary[id].code) {
+                                                                    codeEditor.setValue(scriptsLibrary[id].code);
+                                                                }
+                                                                scriptDropdown.value = id;
+                                                            }
+                                        
+                                                            function createNewScript() {
+                                                                currentEditId = generateId();
+                                                                scriptNameInput.value = "New Strategy";
+                                                                codeEditor.setValue(defaultScript);
+                                                                scriptDropdown.value = "";
+                                                            }
+                                        
+                                                            // Wait for module injection to complete and attach cloudDB listener
+                                                            setTimeout(() => {
+                                                                if (window.cloudDB) {
+                                                                    window.cloudDB.listenLibrary((lib) => {
+                                                                        scriptsLibrary = lib;
+                                                                        updateScriptDropdown();
+                                                                        if (!currentEditId) {
+                                                                            const keys = Object.keys(lib);
+                                                                            if (keys.length > 0) loadScriptIntoEditor(keys[0]);
+                                                                            else createNewScript();
+                                                                        }
+                                                                    });
+                                                                    window.cloudDB.listenActive((activeId) => {
+                                                                        activeAppliedId = activeId;
+                                                                        if (activeId && scriptsLibrary[activeId]) {
+                                                                            compileCloudIndicator(scriptsLibrary[activeId].code);
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    createNewScript();
+                                                                    compileCloudIndicator(defaultScript);
+                                                                }
+                                                            }, 1000);
+                                                        });
+                                                
+                                                        scriptDropdown.addEventListener('change', (e) => {
+                                                            if (e.target.value) loadScriptIntoEditor(e.target.value);
+                                                        });
+                                                
+                                                        document.getElementById('btn-new-script').addEventListener('click', createNewScript);
+                                                
+                                                        document.getElementById('btn-save-script').addEventListener('click', () => {
+                                                            if (!currentEditId) currentEditId = generateId();
+                                                            const name = scriptNameInput.value.trim() || 'Unnamed';
+                                                            const code = codeEditor.getValue();
+                                                            if (window.cloudDB) window.cloudDB.saveScript(currentEditId, name, code);
+                                                            alert("Strategy Saved!");
+                                                        });
+                                                
+                                                        document.getElementById('btn-delete-script').addEventListener('click', () => {
+                                                            if (!currentEditId) return;
+                                                            if (confirm("Delete this strategy?")) {
+                                                                if (window.cloudDB) window.cloudDB.deleteScript(currentEditId);
+                                                                createNewScript();
+                                                            }
+                                                        });
+                                                
+                                                        document.getElementById('btn-apply-script').addEventListener('click', () => {
+                                                            const code = codeEditor.getValue();
+                                                            if (!currentEditId) currentEditId = generateId();
+                                                            const name = scriptNameInput.value.trim() || 'Unnamed';
+                                                            if (window.cloudDB) {
+                                                                window.cloudDB.saveScript(currentEditId, name, code);
+                                                                window.cloudDB.setActiveScript(currentEditId);
+                                                            }
+                                                            compileCloudIndicator(code);
+                                                            document.getElementById('editorModal').style.display = 'none';
+                                                            document.getElementById('editorModalOverlay').style.display = 'none';
+                                                        });
+                                                
+                                                        document.getElementById('show-editor-btn').addEventListener('click', () => {
+                                                            document.getElementById('editorModal').style.display = 'flex';
+                                                            document.getElementById('editorModalOverlay').style.display = 'block';
+                                                            setTimeout(() => codeEditor.refresh(), 100);
+                                                        });
+                                                
+                                                        document.getElementById('close-editor-btn').addEventListener('click', () => {
+                                                            document.getElementById('editorModal').style.display = 'none';
+                                                            document.getElementById('editorModalOverlay').style.display = 'none';
+                                                        });
+                                                
+                                                        function applyZoom() {
             const el = document.querySelector('.dashboard-container');
             const factor = zoomLevel / 100;
             el.style.transform = `scale(${factor})`;
@@ -992,15 +1176,18 @@
                                 }
                     
                                 const chartParams = {
-                                    visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth
-                                };
-                                activeIndicators.forEach(ind => {
-                                    ctx.save();
-                                    try { ind.draw(ctx, chartParams); } catch(e) { console.error("Indicator draw error", e); }
-                                    ctx.restore();
-                                });
-                    
-                                // --- DRAW ENTRY LINES FOR OPEN MULTIPLIER POSITIONS ON THIS SYMBOL ---
+                                                                    visibleCandles, sliceStart, getY, chartAreaWidth, totalCandleWidth
+                                                                };
+                                                                activeIndicators.forEach(ind => {
+                                                                    ctx.save();
+                                                                    try { 
+                                                                        ind.draw(ctx, chartParams); 
+                                                                        if (typeof ind.drawSignals === 'function') ind.drawSignals(ctx, chartParams);
+                                                                    } catch(e) { console.error("Indicator draw error", e); }
+                                                                    ctx.restore();
+                                                                });
+                                                    
+                                                                // --- DRAW ENTRY LINES FOR OPEN MULTIPLIER POSITIONS ON THIS SYMBOL ---
                                     const openForSymbol = isLiveView ? Object.values(positions).filter(p => p.underlying_symbol === currentPair && isPositionOpen(p)) : [];
                         if (openForSymbol.length > 0 && lastCandle) {
                 const lastCandleX = chartAreaWidth - totalCandleWidth;
@@ -1563,9 +1750,12 @@
                         all = batch.concat(all); // older batch first - each batch already comes back ascending
                         if (symbol === currentPair) {
                                                     marketData[symbol] = all.map(c => ({ time: Number(c.epoch), open: Number(c.open), high: Number(c.high), low: Number(c.low), close: Number(c.close) }));
-                                                    activeIndicators.forEach(ind => ind.calculate(marketData[symbol]));
-                                                    drawChart();
-                                                }
+                                                                                                        activeIndicators.forEach(ind => {
+                                                                                                            ind.calculate(marketData[symbol]);
+                                                                                                            if (typeof ind.runBacktest === 'function') ind.runBacktest(marketData[symbol]);
+                                                                                                        });
+                                                                                                        drawChart();
+                                                                                                    }
                         if (batch.length < MAX_CANDLES_PER_REQUEST) break; // hit the earliest data the server has
                         endEpoch = Number(batch[0].epoch) - granularity;
                     }
@@ -1675,7 +1865,10 @@
                     }
         
                     if (symbol === currentPair) {
-                                            activeIndicators.forEach(ind => ind.calculate(marketData[symbol]));
+                                            activeIndicators.forEach(ind => {
+                                                ind.calculate(marketData[symbol]);
+                                                if (typeof ind.runBacktest === 'function') ind.runBacktest(marketData[symbol]);
+                                            });
                                             drawChart();
                                         }
                                     }
