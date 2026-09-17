@@ -115,16 +115,20 @@
         .control-item svg { margin-right: 2px !important; width: 16px !important; height: 16px !important; }
 
         select, input {
-            background-color: #000432;
-            color: #c8d0e7;
-            border: 1px solid #ffffff;
-            padding: 4px;
-            width: 44px;
-            border-radius: 6px;
-            text-align: center;
-            font-family: inherit;
-            outline: none;
-        }
+                    background-color: #000432;
+                    color: #c8d0e7;
+                    border: 1px solid #ffffff;
+                    padding: 4px;
+                    width: 44px;
+                    border-radius: 6px;
+                    text-align: center;
+                    font-family: inherit;
+                    outline: none;
+                }
+                select option {
+                    background-color: #000432;
+                    color: #c8d0e7;
+                }
 
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
@@ -201,166 +205,119 @@
 
         /* --- Open Positions Panel (floating, multiplier-specific) --- */
         .positions-panel {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 230px;
-            max-height: 46%;
-            overflow-y: auto;
-            background: rgba(0, 4, 50, 0.92);
-            border: 1px solid #ffffff;
-            border-radius: 8px;
-            z-index: 25;
-            font-size: 11px;
-        }
-        .positions-panel::-webkit-scrollbar { width: 4px; }
-        .positions-header {
-            padding: 6px 8px;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            color: #ffcc00;
-            border-bottom: 1px solid #333;
-            font-size: 10px;
-        }
-        .position-row {
-            padding: 6px 8px;
-            border-bottom: 1px solid #1a1e3a;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .position-row .pr-top {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 800;
-        }
-        .position-row .pr-bottom {
-            display: flex;
-            justify-content: space-between;
-            color: #8892b0;
-            font-size: 10px;
-        }
-        .position-row .pr-close {
-            margin-top: 3px;
-            background: transparent;
-            border: 1px solid #ffcc00;
-            color: #ffcc00;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 3px;
-            cursor: pointer;
-        }
-        .positions-empty {
-            padding: 10px 8px;
-            color: #8892b0;
-            text-align: center;
-            font-size: 10px;
-        }
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    width: 260px;
+                    max-height: 60%;
+                    overflow-y: auto;
+                    background: rgba(0, 4, 50, 0.95);
+                    border: 1px solid #ffffff;
+                    border-radius: 8px;
+                    z-index: 25;
+                    font-size: 11px;
+                }
+                .positions-panel::-webkit-scrollbar { width: 4px; }
+                .positions-header {
+                    padding: 6px 8px;
+                    font-weight: 800;
+                    letter-spacing: 0.05em;
+                    color: #ffcc00;
+                    border-bottom: 1px solid #333;
+                    font-size: 10px;
+                }
+                .position-row {
+                    padding: 6px 8px;
+                    border-bottom: 1px solid #1a1e3a;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    cursor: pointer;
+                }
+                .position-row .pr-top {
+                    display: flex;
+                    justify-content: space-between;
+                    font-weight: 800;
+                }
+                .position-row .pr-bottom {
+                    display: flex;
+                    justify-content: space-between;
+                    color: #8892b0;
+                    font-size: 10px;
+                }
+                .position-row .pr-detail {
+                    display: none;
+                    margin-top: 4px;
+                    padding-top: 4px;
+                    border-top: 1px dashed #333;
+                    flex-direction: column;
+                    gap: 3px;
+                }
+                .position-row.expanded .pr-detail { display: flex; }
+                .position-row .pr-detail-line {
+                    display: flex;
+                    justify-content: space-between;
+                    color: #c8d0e7;
+                    font-size: 10px;
+                }
+                .position-row .pr-detail-line .lbl { color: #8892b0; }
+                .position-row .pr-close {
+                    margin-top: 4px;
+                    background: transparent;
+                    border: 1px solid #ffcc00;
+                    color: #ffcc00;
+                    border-radius: 4px;
+                    font-size: 10px;
+                    font-weight: 800;
+                    padding: 4px;
+                    cursor: pointer;
+                }
+                .positions-empty {
+                    padding: 10px 8px;
+                    color: #8892b0;
+                    text-align: center;
+                    font-size: 10px;
+                }
+                .positions-tabs {
+                    display: flex;
+                    border-bottom: 1px solid #333;
+                }
+                .positions-tab {
+                    flex: 1;
+                    text-align: center;
+                    padding: 5px 0;
+                    font-size: 10px;
+                    font-weight: 800;
+                    color: #8892b0;
+                    cursor: pointer;
+                    background: transparent;
+                    border: none;
+                }
+                .positions-tab.active {
+                    color: #ffcc00;
+                    border-bottom: 2px solid #ffcc00;
+                }
+                .closed-row {
+                    padding: 6px 8px;
+                    border-bottom: 1px solid #1a1e3a;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
+                .closed-row .pr-top {
+                    display: flex;
+                    justify-content: space-between;
+                    font-weight: 800;
+                }
+                .closed-row .pr-detail-line {
+                    display: flex;
+                    justify-content: space-between;
+                    color: #c8d0e7;
+                    font-size: 10px;
+                }
+                .closed-row .pr-detail-line .lbl { color: #8892b0; }
 
-        /* --- SL/TP + Multiplier trade panel (replaces the old expiry panel) --- */
-        .floating-trade-panel {
-            position: absolute;
-            bottom: 143px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr 1.4fr;
-            align-items: stretch;
-            background: rgba(0, 4, 50, 0.9);
-            border: 1px solid #ffffff;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-            padding: 0 4px;
-            gap: 4px;
-            z-index: 20;
-            width: 98%;
-            max-width: 640px;
-            box-sizing: border-box;
-            overflow: hidden;
-            height: 48px;
-        }
-        .floating-trade-panel input {
-            width: 100%;
-            min-width: 0;
-            height: 100%;
-            background: transparent;
-            border: none;
-            border-right: 1px solid #ffffff !important;
-            color: #c8d0e7;
-            text-align: center;
-            font-weight: 800;
-            outline: none;
-            border-radius: 0;
-            box-sizing: border-box;
-            font-size: 13px;
-            padding: 0 4px;
-        }
-        .floating-trade-panel .action-btn {
-            height: 100%;
-            padding: 0 4px !important;
-            box-sizing: border-box;
-            border: none;
-            border-radius: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .floating-trade-panel .quick-pairs-inline { display: contents; }
-        .floating-trade-panel #account-toggle-btn { display: none; }
-        .floating-trade-panel #balance-display {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 13px;
-            font-weight: 800;
-            margin-left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            border-radius: 0;
-            height: 100%;
-            padding: 0 6px;
-        }
-
-        .floating-trade-buttons-row {
-            position: absolute;
-            bottom: 95px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: stretch;
-            justify-content: center;
-            gap: 8px;
-            background: rgba(0, 4, 50, 0.9);
-            border: 1px solid #ffffff;
-            border-radius: 0 0 10px 10px;
-            padding: 0 10px;
-            z-index: 20;
-            width: 98%;
-            max-width: 640px;
-            box-sizing: border-box;
-            overflow: hidden;
-            height: 48px;
-        }
-        .floating-trade-buttons-row .action-btn {
-            flex: 1 1 0;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 !important;
-            box-sizing: border-box;
-            border: none;
-            border-radius: 0;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-        }
-        .floating-trade-buttons-row .action-btn:first-child { border-right: 1px solid #ffffff !important; }
-
-    </style>
+        </style>
 </head>
 <body>
 
@@ -377,10 +334,14 @@
             </div>
 
             <!-- Live open Multiplier positions -->
-            <div class="positions-panel" id="positionsPanel">
-                <div class="positions-header">OPEN POSITIONS</div>
-                <div id="positionsList"><div class="positions-empty">NO OPEN POSITIONS</div></div>
-            </div>
+                        <div class="positions-panel" id="positionsPanel">
+                            <div class="positions-tabs">
+                                <button class="positions-tab active" id="tabOpenBtn">OPEN</button>
+                                <button class="positions-tab" id="tabClosedBtn">CLOSED</button>
+                            </div>
+                            <div id="positionsList"><div class="positions-empty">NO OPEN POSITIONS</div></div>
+                            <div id="closedList" style="display:none;"><div class="positions-empty">NO CLOSED TRADES YET</div></div>
+                        </div>
         </div>
 
         <div class="bottom-controls" style="display: flex !important; justify-content: center; align-items: center; padding: 2px 10px; background: #000432; width: 100%; box-sizing: border-box; border-top: 1px solid #ffffff;">
@@ -406,28 +367,53 @@
                 <button id="trade-btn-row2" class="action-btn btn-call" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #0ecb81; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">UP</button>
 
                 <button id="trade-btn-put-row2" class="action-btn btn-put" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #f6465d; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">DOWN</button>
-
-                <div class="quick-pairs-inline" id="quick-pairs-container" style="display: flex; height: 100%;">
-
-                    <button class="quick-pair-btn active" data-val="cryBTCUSD" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #00e5ff; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">BTC <span class="payout-pct" id="payout-cryBTCUSD" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ15V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V15 <span class="payout-pct" id="payout-1HZ15V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ25V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V25 <span class="payout-pct" id="payout-1HZ25V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ30V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V30 <span class="payout-pct" id="payout-1HZ30V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ50V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V50 <span class="payout-pct" id="payout-1HZ50V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ75V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V75 <span class="payout-pct" id="payout-1HZ75V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ90V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V90 <span class="payout-pct" id="payout-1HZ90V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <button class="quick-pair-btn" data-val="1HZ100V" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; color: #c8d0e7; padding: 0 12px; margin: 0; height: 100%; font-size: 12px; font-weight: bold;">V100 <span class="payout-pct" id="payout-1HZ100V" style="color: inherit; margin-left: 2px;">--</span></button>
-
-                    <input type="number" id="candle-time" value="3" step="1" aria-label="Timeframe (seconds)" style="width: 45px; height: 100%; background: transparent; border: none; color: #c8d0e7; text-align: center; font-weight: 800; font-size: 12px; outline: none; margin: 0; padding: 0 6px; box-sizing: border-box;">
-
-                </div>
+                
+                                <input type="number" id="stop-loss" placeholder="SL" aria-label="Stop Loss" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+                
+                                <input type="number" id="take-profit" placeholder="TP" aria-label="Take Profit" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+                
+                                <button id="show-trades-btn" class="action-btn btn-log" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 10px !important; font-size: 11px; color: #ffcc00; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; white-space: nowrap;">POSITIONS</button>
+                
+                                <select id="pair-select" aria-label="Trading Pair" style="width: 90px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #00e5ff; text-align: center; font-weight: bold; font-size: 12px; outline: none; margin: 0; padding: 0;">
+                                    <option value="cryBTCUSD">BTC/USD</option>
+                                    <option value="cryETHUSD">ETH/USD</option>
+                                    <option value="1HZ10V">Volatility 10</option>
+                                    <option value="1HZ15V">Volatility 15</option>
+                                    <option value="1HZ25V">Volatility 25</option>
+                                    <option value="1HZ30V">Volatility 30</option>
+                                    <option value="1HZ50V">Volatility 50</option>
+                                    <option value="1HZ75V">Volatility 75</option>
+                                    <option value="1HZ90V">Volatility 90</option>
+                                    <option value="1HZ100V">Volatility 100</option>
+                                    <option value="frxXAUUSD">Gold/USD</option>
+                                    <option value="frxXAGUSD">Silver/USD</option>
+                                    <option value="frxXPTUSD">Platinum/USD</option>
+                                    <option value="frxAUDCAD">AUD/CAD</option>
+                                    <option value="frxAUDCHF">AUD/CHF</option>
+                                    <option value="frxAUDJPY">AUD/JPY</option>
+                                    <option value="frxAUDNZD">AUD/NZD</option>
+                                    <option value="frxAUDUSD">AUD/USD</option>
+                                    <option value="frxEURAUD">EUR/AUD</option>
+                                    <option value="frxEURCAD">EUR/CAD</option>
+                                    <option value="frxEURCHF">EUR/CHF</option>
+                                    <option value="frxEURGBP">EUR/GBP</option>
+                                    <option value="frxEURJPY">EUR/JPY</option>
+                                    <option value="frxEURNZD">EUR/NZD</option>
+                                    <option value="frxEURUSD">EUR/USD</option>
+                                    <option value="frxGBPAUD">GBP/AUD</option>
+                                    <option value="frxGBPCAD">GBP/CAD</option>
+                                    <option value="frxGBPCHF">GBP/CHF</option>
+                                    <option value="frxGBPJPY">GBP/JPY</option>
+                                    <option value="frxGBPNZD">GBP/NZD</option>
+                                    <option value="frxGBPUSD">GBP/USD</option>
+                                    <option value="frxNZDJPY">NZD/JPY</option>
+                                    <option value="frxNZDUSD">NZD/USD</option>
+                                    <option value="frxUSDCAD">USD/CAD</option>
+                                    <option value="frxUSDCHF">USD/CHF</option>
+                                    <option value="frxUSDJPY">USD/JPY</option>
+                                </select>
+                
+                                <input type="number" id="candle-time" value="3" step="1" aria-label="Timeframe (seconds)" style="width: 45px; height: 100%; background: transparent; border: none; color: #c8d0e7; text-align: center; font-weight: 800; font-size: 12px; outline: none; margin: 0; padding: 0 6px; box-sizing: border-box;">
 
             </div>
 
@@ -436,19 +422,6 @@
                 <span id="conn-status">OFFLINE</span>
             </div>
         </div>
-    </div>
-
-    <!-- Floating Stop Loss / Take Profit panel -->
-    <div class="floating-trade-panel" style="display:none;" id="slTpPanel">
-        <div style="display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#8892b0; border-right:1px solid #fff;">SL/TP</div>
-        <input type="number" id="stop-loss" placeholder="Stop Loss" aria-label="Stop Loss" step="0.01">
-        <input type="number" id="take-profit" placeholder="Take Profit" aria-label="Take Profit" step="0.01">
-        <div style="display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#8892b0; border-right:1px solid #fff;">USD</div>
-        <div style="display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#ffcc00;" id="est-payout-display">--</div>
-    </div>
-
-    <div class="floating-trade-buttons-row" style="display:none;" id="showPositionsRow">
-        <button id="show-trades-btn" class="action-btn btn-log" style="color:#8892b0; font-size:12px;">OPEN POSITIONS</button>
     </div>
 
     <div id="tradeModalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000432; z-index:2001;"></div>
@@ -477,6 +450,8 @@
         let tickSubscriptions = {};
         let payoutSubscriptions = {};
         let openPositions = {}; // contract_id -> position object (from proposal_open_contract)
+                let closedPositions = []; // history of closed trades, newest first
+                let expandedPositionIds = {}; // contract_id -> true if row is expanded in the UI
         let zoomLevel = 100;
         let marketData = {};
         let serverTimeOffset = 0;
@@ -504,9 +479,6 @@
         const takeProfitInput = document.getElementById('take-profit');
         const estPayoutDisplay = document.getElementById('est-payout-display');
         const positionsList = document.getElementById('positionsList');
-
-        document.getElementById('slTpPanel').style.display = 'grid';
-        document.getElementById('showPositionsRow').style.display = 'flex';
 
         function applyZoom() {
             const el = document.querySelector('.dashboard-container');
@@ -879,9 +851,9 @@
                         span.innerText = isFinite(ask) ? `$${ask.toFixed(2)}` : '--';
                     }
                     if (symbol === currentPair) {
-                        const ask = Number(data.proposal.ask_price);
-                        estPayoutDisplay.innerText = isFinite(ask) ? `Cost: $${ask.toFixed(2)}` : '--';
-                    }
+                                            const ask = Number(data.proposal.ask_price);
+                                            if (estPayoutDisplay) estPayoutDisplay.innerText = isFinite(ask) ? `Cost: $${ask.toFixed(2)}` : '--';
+                                        }
                 }
 
                 // Trade opened
@@ -897,18 +869,24 @@
                 }
 
                 // Real-time open position state (multiplier P&L, status, entry spot, etc.)
-                if (data.proposal_open_contract) {
-                    const c = data.proposal_open_contract;
-                    if (c.contract_id) {
-                        if (c.is_sold || c.status === 'sold' || c.status === 'won' || c.status === 'lost') {
-                            delete openPositions[c.contract_id];
-                        } else {
-                            openPositions[c.contract_id] = c;
-                        }
-                        updatePositionsUI();
-                        if (c.underlying_symbol === currentPair) drawChart();
-                    }
-                }
+                                if (data.proposal_open_contract) {
+                                    const c = data.proposal_open_contract;
+                                    if (c.contract_id) {
+                                        const wasOpen = !!openPositions[c.contract_id];
+                                        if (c.is_sold || c.status === 'sold' || c.status === 'won' || c.status === 'lost') {
+                                            if (wasOpen || !closedPositions.find(x => x.contract_id === c.contract_id)) {
+                                                closedPositions.unshift(c);
+                                                if (closedPositions.length > 50) closedPositions.pop();
+                                            }
+                                            delete openPositions[c.contract_id];
+                                            delete expandedPositionIds[c.contract_id];
+                                        } else {
+                                            openPositions[c.contract_id] = c;
+                                        }
+                                        updatePositionsUI();
+                                        if (c.underlying_symbol === currentPair) drawChart();
+                                    }
+                                }
             };
 
             ws.onclose = () => {
@@ -929,39 +907,140 @@
             pocSubscribed = true;
         }
 
-        // --- OPEN POSITIONS UI (floating panel + modal) ---
-        function updatePositionsUI() {
-            const positions = Object.values(openPositions);
-
-            if (positions.length === 0) {
-                positionsList.innerHTML = '<div class="positions-empty">NO OPEN POSITIONS</div>';
-            } else {
-                let html = '';
-                positions.forEach(p => {
-                    const profit = Number(p.profit) || 0;
-                    const color = profit >= 0 ? '#0ecb81' : '#f6465d';
-                    const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
-                    html += `
-                        <div class="position-row">
-                            <div class="pr-top">
-                                <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
-                                <span style="color:${color};">$${profit.toFixed(2)}</span>
-                            </div>
-                            <div class="pr-bottom">
-                                <span>Stake $${Number(p.buy_price).toFixed(2)}</span>
-                                <span>Bid $${Number(p.bid_price).toFixed(2)}</span>
-                            </div>
-                            <button class="pr-close" data-cid="${p.contract_id}">CLOSE</button>
-                        </div>`;
-                });
-                positionsList.innerHTML = html;
-                positionsList.querySelectorAll('.pr-close').forEach(btn => {
-                    btn.addEventListener('click', () => closePosition(Number(btn.getAttribute('data-cid'))));
-                });
-            }
-
-            updateTradeModalUI(positions);
-        }
+        // --- Derived multiplier metrics not directly given by the API ---
+                function computeDerivedMetrics(p) {
+                    const entry = Number(p.entry_spot);
+                    const mult = Number(p.multiplier);
+                    const stake = Number(p.buy_price);
+                    const commission = Number(p.commission) || 0;
+                    const isUp = p.contract_type === 'MULTUP';
+        
+                    // Breakeven: the spot price at which profit first turns positive,
+                    // i.e. where price movement has just covered the commission cost.
+                    // priceMovePct needed to cover commission = commission / (stake * multiplier)
+                    let breakeven = null;
+                    if (entry && mult && stake) {
+                        const pctToCoverFee = commission / (stake * mult);
+                        breakeven = isUp ? entry * (1 + pctToCoverFee) : entry * (1 - pctToCoverFee);
+                    }
+        
+                    // Stop-out / liquidation level: prefer the API's own stop_out level if present,
+                    // otherwise estimate it as the price move that would wipe out the full stake.
+                    let stopOut = null;
+                    if (p.limit_order && p.limit_order.stop_out && p.limit_order.stop_out.order_amount != null) {
+                        stopOut = Number(p.limit_order.stop_out.order_amount);
+                    } else if (entry && mult) {
+                        const fullLossPct = 1 / mult;
+                        stopOut = isUp ? entry * (1 - fullLossPct) : entry * (1 + fullLossPct);
+                    }
+        
+                    return { breakeven, stopOut };
+                }
+        
+                function formatEpoch(epoch) {
+                    if (!epoch) return '--:--:--';
+                    const d = new Date(epoch * 1000);
+                    const h = d.getHours().toString().padStart(2, '0');
+                    const m = d.getMinutes().toString().padStart(2, '0');
+                    const s = d.getSeconds().toString().padStart(2, '0');
+                    return `${h}${m}${s}`;
+                }
+        
+                // --- OPEN POSITIONS UI (floating panel + modal) ---
+                function updatePositionsUI() {
+                    const positions = Object.values(openPositions);
+        
+                    if (positions.length === 0) {
+                        positionsList.innerHTML = '<div class="positions-empty">NO OPEN POSITIONS</div>';
+                    } else {
+                        let html = '';
+                        positions.forEach(p => {
+                            const profit = Number(p.profit) || 0;
+                            const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                            const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                            const { breakeven, stopOut } = computeDerivedMetrics(p);
+                            const entryTime = formatEpoch(p.date_start || p.purchase_time);
+                            const isExpanded = !!expandedPositionIds[p.contract_id];
+                            const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
+        
+                            html += `
+                                <div class="position-row${isExpanded ? ' expanded' : ''}" data-cid="${p.contract_id}">
+                                    <div class="pr-top">
+                                        <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
+                                        <span style="color:${color};">$${profit.toFixed(2)}</span>
+                                    </div>
+                                    <div class="pr-bottom">
+                                        <span>Stake $${stake_fmt(p)}</span>
+                                        <span>Bid $${Number(p.bid_price).toFixed(2)}</span>
+                                    </div>
+                                    <div class="pr-detail">
+                                        <div class="pr-detail-line"><span class="lbl">Trade Amount</span><span>$${stake_fmt(p)}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Leverage</span><span>x${p.multiplier}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Forecast</span><span style="color:${dirLabel === 'UP' ? '#0ecb81' : '#f6465d'}">${dirLabel}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Entry Time</span><span>${entryTime}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Entry Price</span><span>${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Liquidation Price</span><span style="color:#f6465d;">${stopOut != null ? stopOut.toFixed(dec) : '--'}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Breakeven (fee-covered) Price</span><span style="color:#ffcc00;">${breakeven != null ? breakeven.toFixed(dec) : '--'}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Live Bid Value</span><span>$${Number(p.bid_price).toFixed(2)}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Live P&L</span><span style="color:${color};">$${profit.toFixed(2)}</span></div>
+                                        <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || 'open').toUpperCase()}</span></div>
+                                    </div>
+                                    <button class="pr-close" data-cid="${p.contract_id}">CLOSE</button>
+                                </div>`;
+                        });
+                        positionsList.innerHTML = html;
+                        positionsList.querySelectorAll('.position-row').forEach(row => {
+                            row.addEventListener('click', (e) => {
+                                if (e.target.classList.contains('pr-close')) return;
+                                const cid = row.getAttribute('data-cid');
+                                expandedPositionIds[cid] = !expandedPositionIds[cid];
+                                row.classList.toggle('expanded', !!expandedPositionIds[cid]);
+                            });
+                        });
+                        positionsList.querySelectorAll('.pr-close').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                closePosition(Number(btn.getAttribute('data-cid')));
+                            });
+                        });
+                    }
+        
+                    updateClosedListUI();
+                    updateTradeModalUI(positions);
+                }
+        
+                function stake_fmt(p) {
+                    return Number(p.buy_price).toFixed(2);
+                }
+        
+                function updateClosedListUI() {
+                    const closedList = document.getElementById('closedList');
+                    if (!closedList) return;
+                    if (closedPositions.length === 0) {
+                        closedList.innerHTML = '<div class="positions-empty">NO CLOSED TRADES YET</div>';
+                        return;
+                    }
+                    let html = '';
+                    closedPositions.forEach(p => {
+                        const profit = Number(p.profit) || 0;
+                        const color = profit >= 0 ? '#0ecb81' : '#f6465d';
+                        const dirLabel = p.contract_type === 'MULTUP' ? 'UP' : 'DOWN';
+                        const entryTime = formatEpoch(p.date_start || p.purchase_time);
+                        const closeTime = formatEpoch(p.sell_time || p.exit_spot_time);
+                        const dec = Number(p.entry_spot) < 10 ? 5 : (Number(p.entry_spot) < 1000 ? 3 : 2);
+                        html += `
+                            <div class="closed-row">
+                                <div class="pr-top">
+                                    <span>${p.underlying_symbol} ${dirLabel} x${p.multiplier}</span>
+                                    <span style="color:${color};">$${profit.toFixed(2)}</span>
+                                </div>
+                                <div class="pr-detail-line"><span class="lbl">Entry</span><span>${entryTime} @ ${p.entry_spot != null ? Number(p.entry_spot).toFixed(dec) : '--'}</span></div>
+                                <div class="pr-detail-line"><span class="lbl">Close</span><span>${closeTime} @ ${p.exit_spot != null ? Number(p.exit_spot).toFixed(dec) : '--'}</span></div>
+                                <div class="pr-detail-line"><span class="lbl">Status</span><span>${(p.status || '--').toUpperCase()}</span></div>
+                            </div>`;
+                    });
+                    closedList.innerHTML = html;
+                }
 
         function updateTradeModalUI(positions) {
             const list = document.getElementById('tradeList');
@@ -992,11 +1071,24 @@
             });
         }
 
-        document.getElementById('show-trades-btn').addEventListener('click', () => {
-            document.getElementById('tradeModal').style.display = 'flex';
-            document.getElementById('tradeModalOverlay').style.display = 'block';
-            updateTradeModalUI(Object.values(openPositions));
-        });
+        document.getElementById('tabOpenBtn').addEventListener('click', () => {
+                    document.getElementById('tabOpenBtn').classList.add('active');
+                    document.getElementById('tabClosedBtn').classList.remove('active');
+                    positionsList.style.display = '';
+                    document.getElementById('closedList').style.display = 'none';
+                });
+                document.getElementById('tabClosedBtn').addEventListener('click', () => {
+                    document.getElementById('tabClosedBtn').classList.add('active');
+                    document.getElementById('tabOpenBtn').classList.remove('active');
+                    positionsList.style.display = 'none';
+                    document.getElementById('closedList').style.display = '';
+                });
+        
+                document.getElementById('show-trades-btn').addEventListener('click', () => {
+                    document.getElementById('tradeModal').style.display = 'flex';
+                    document.getElementById('tradeModalOverlay').style.display = 'block';
+                    updateTradeModalUI(Object.values(openPositions));
+                });
         document.getElementById('close-modal-btn').addEventListener('click', () => {
             document.getElementById('tradeModal').style.display = 'none';
             document.getElementById('tradeModalOverlay').style.display = 'none';
@@ -1172,10 +1264,14 @@
         document.getElementById('trade-btn-row2').addEventListener('click', () => executeTrade("MULTUP"));
         document.getElementById('trade-btn-put-row2').addEventListener('click', () => executeTrade("MULTDOWN"));
 
-        const quickPairBtns = document.querySelectorAll('.quick-pair-btn');
-        showOnlyPair(currentPair);
-
-        window.addEventListener('message', (event) => {
+        const pairSelect = document.getElementById('pair-select');
+                pairSelect.value = currentPair;
+                pairSelect.addEventListener('change', (e) => {
+                    switchPairView(e.target.value);
+                    if (ws && ws.readyState === WebSocket.OPEN) subscribeSinglePayout(e.target.value);
+                });
+        
+                window.addEventListener('message', (event) => {
             const raw = event.data?.trinityOS_pair;
             if (!raw || typeof raw !== 'string') return;
             console.log("📺 TRM Live TV Received Signal:", raw);
@@ -1193,13 +1289,12 @@
         }
 
         function receiveTrinityPair(pair) {
-            if (!trackedPairs.includes(pair)) trackedPairs.push(pair);
-            ensureQuickPairButton(pair);
-            switchPairView(pair);
-            syncQuickBars(pair);
-            showOnlyPair(pair);
-            if (ws && ws.readyState === WebSocket.OPEN) subscribeSinglePayout(pair);
-        }
+                    if (!trackedPairs.includes(pair)) trackedPairs.push(pair);
+                    ensureQuickPairButton(pair);
+                    switchPairView(pair);
+                    pairSelect.value = pair;
+                    if (ws && ws.readyState === WebSocket.OPEN) subscribeSinglePayout(pair);
+                }
 
         // ANDROID CLIPBOARD BRIDGE — same as before, kept for native split-pane WebViews.
         let lastAndroidClipPair = null;
@@ -1211,12 +1306,6 @@
                 const pair = resolveTrackedPair(raw);
                 if (pair) receiveTrinityPair(pair);
             }, 400);
-        }
-
-        function showOnlyPair(pair) {
-            document.querySelectorAll('.quick-pair-btn').forEach(btn => {
-                btn.style.display = (btn.getAttribute('data-val') === pair) ? 'flex' : 'none';
-            });
         }
 
         function subscribeSinglePayout(symbol) {
@@ -1234,38 +1323,15 @@
         }
 
         function ensureQuickPairButton(pair) {
-            const container = document.getElementById('quick-pairs-container');
-            if (!container || document.querySelector(`.quick-pair-btn[data-val="${pair}"]`)) return;
-            const label = pair.replace(/^(frx|cry|1HZ)/i, '');
-            const btn = document.createElement('button');
-            btn.className = 'quick-pair-btn';
-            btn.setAttribute('data-val', pair);
-            btn.style.cssText = 'border:none;border-right:1px solid #ffffff !important;border-radius:0;background:transparent;color:#c8d0e7;padding:0 12px;margin:0;height:100%;font-size:12px;font-weight:bold;';
-            btn.innerHTML = `${label} <span class="payout-pct" id="payout-${pair}">--</span>`;
-            btn.addEventListener('click', () => { syncQuickBars(pair); switchPairView(pair); });
-            const timeInput = document.getElementById('candle-time');
-            container.insertBefore(btn, timeInput);
-        }
-
-        function syncQuickBars(selectedPair) {
-            document.querySelectorAll('.quick-pair-btn').forEach(btn => {
-                const isSel = btn.getAttribute('data-val') === selectedPair;
-                btn.classList.toggle('active', isSel);
-                btn.style.color = isSel ? '#00e5ff' : '#c8d0e7';
-                const payoutSpan = btn.querySelector('.payout-pct');
-                if (payoutSpan) payoutSpan.style.color = isSel ? '#00e5ff' : 'inherit';
-            });
-        }
-
-        quickPairBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const newPair = e.target.getAttribute('data-val');
-                syncQuickBars(newPair);
-                switchPairView(newPair);
-            });
-        });
-
-        setInterval(() => {
+                    if (!pairSelect || pairSelect.querySelector(`option[value="${pair}"]`)) return;
+                    const label = pair.replace(/^(frx|cry|1HZ)/i, '');
+                    const opt = document.createElement('option');
+                    opt.value = pair;
+                    opt.textContent = label;
+                    pairSelect.appendChild(opt);
+                }
+        
+                setInterval(() => {
             if (marketData[currentPair] && marketData[currentPair].length > 0) drawChart();
         }, 1000);
 
