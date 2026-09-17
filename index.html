@@ -824,13 +824,20 @@
                         ctx.font = 'bold 9px sans-serif';
                                                             ctx.textAlign = 'right';
                                                             ctx.textBaseline = 'bottom';
-                                                            const openPositionsArr = Object.values(positions).filter(isPositionOpen);
+                                                            const openPositionsArr = Object.values(positions).filter(p => p.underlying_symbol === currentPair && isPositionOpen(p));
                                                                                                 if (openPositionsArr.length > 0) {
                                                                                                     const openStake = openPositionsArr.reduce((s, p) => s + (Number(p.buy_price) || 0), 0);
                                                                                                     const openPL = openPositionsArr.reduce((s, p) => s + (Number(p.profit) || 0), 0);
-                                                                                                    const liveValue = openStake + openPL;
+                                                                                                    const latestPos = openPositionsArr.reduce((a, b) => (b.date_start || 0) > (a.date_start || 0) ? b : a);
+                                                                                                    const forecastLabel = latestPos.contract_type === 'MULTUP' ? 'BUY' : 'SELL';
+                                                                                                    const forecastColor = latestPos.contract_type === 'MULTUP' ? '#0ecb81' : '#f6465d';
                                                                                                     ctx.fillStyle = openPL >= 0 ? '#0ecb81' : '#f6465d';
-                                                                                                    ctx.fillText(`$${liveValue.toFixed(2)}`, canvasWidth - yAxisWidth - 4, currentY - 13);
+                                                                                                    ctx.fillStyle = '#00e5ff';
+                                                                                                    ctx.fillText(`x${latestPos.multiplier}`, canvasWidth - yAxisWidth - 4, currentY - 35);
+                                                                                                    ctx.fillStyle = forecastColor;
+                                                                                                    ctx.fillText(forecastLabel, canvasWidth - yAxisWidth - 4, currentY - 24);
+                                                                                                    ctx.fillStyle = openPL >= 0 ? '#0ecb81' : '#f6465d';
+                                                                                                    ctx.fillText(`$${(openStake + openPL).toFixed(2)} [ $${openPL.toFixed(2)}]`, canvasWidth - yAxisWidth - 4, currentY - 13);
                                                                                                 }
                                                             ctx.fillStyle = boxColor;
                                                             ctx.fillText('LIVE', canvasWidth - yAxisWidth - 4, currentY - 2);
