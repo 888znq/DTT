@@ -599,11 +599,11 @@
         
             <script>
                 // ================= DERIV MULTIPLIER TRADING (api.derivws.com) =================
-        // Verified against developers.deriv.com/llms/*.md :
-        //   proposal (MULTUP/MULTDOWN + limit_order), buy, sell,
-        //   proposal_open_contract (subscribe-all, gives real bid_price/profit/status)
-        const TOKEN = "pat_a789fd01619ef7c5ba33a117eb939efde1c40ed66754cba6eaaf23fe12a48ab4";
-        const APP_ID = "33VdMoKptaW40mOpanwBg";
+                        // Verified against developers.deriv.com/llms/*.md :
+                        //   proposal (MULTUP/MULTDOWN + limit_order), buy, sell,
+                        //   proposal_open_contract (subscribe-all, gives real bid_price/profit/status)
+                        const TOKEN = "pat_d68d495257682c59c88244d861a9cb521b034527a8607ef9a9226424687fa757";
+                        const APP_ID = "33VdMoKptaW40mOpanwBg";
         const API_BASE = "https://api.derivws.com";
 
         let ws;
@@ -887,18 +887,24 @@
 
         // --- REST handshake to obtain a live WebSocket URL ---
         async function getRealAccountId(accountType) {
-            const res = await fetch(`${API_BASE}/trading/v1/options/accounts`, {
-                method: 'GET',
-                headers: {
-                    'Deriv-App-ID': APP_ID,
-                    'Authorization': `Bearer ${TOKEN}`
-                }
-            });
-            const json = await res.json();
-            if (!res.ok) {
-                const msg = (json.errors && json.errors[0] && json.errors[0].message) || 'Failed to get account';
-                throw new Error(msg);
-            }
+                    const res = await fetch(`${API_BASE}/trading/v1/options/accounts`, {
+                        method: 'GET',
+                        headers: {
+                            'Deriv-App-ID': APP_ID,
+                            'Authorization': `Bearer ${TOKEN}`
+                        }
+                    });
+                    const rawText = await res.text();
+                    let json;
+                    try {
+                        json = JSON.parse(rawText);
+                    } catch (e) {
+                        throw new Error(rawText.slice(0, 150) || `HTTP Error ${res.status}`);
+                    }
+                    if (!res.ok) {
+                        const msg = (json.errors && json.errors[0] && json.errors[0].message) || 'Failed to get account';
+                        throw new Error(msg);
+                    }
             const accounts = Array.isArray(json.data) ? json.data : [];
             const matchedAccount = accounts.find(acct => acct.account_type === accountType);
             if (!matchedAccount) {
@@ -908,18 +914,24 @@
         }
 
         async function getWsUrl(accountId) {
-            const res = await fetch(`${API_BASE}/trading/v1/options/accounts/${accountId}/otp`, {
-                method: 'POST',
-                headers: {
-                    'Deriv-App-ID': APP_ID,
-                    'Authorization': `Bearer ${TOKEN}`
-                }
-            });
-            const json = await res.json();
-            if (!res.ok) {
-                const msg = (json.errors && json.errors[0] && json.errors[0].message) || 'Failed to get OTP';
-                throw new Error(msg);
-            }
+                    const res = await fetch(`${API_BASE}/trading/v1/options/accounts/${accountId}/otp`, {
+                        method: 'POST',
+                        headers: {
+                            'Deriv-App-ID': APP_ID,
+                            'Authorization': `Bearer ${TOKEN}`
+                        }
+                    });
+                    const rawText = await res.text();
+                    let json;
+                    try {
+                        json = JSON.parse(rawText);
+                    } catch (e) {
+                        throw new Error(rawText.slice(0, 150) || `HTTP Error ${res.status}`);
+                    }
+                    if (!res.ok) {
+                        const msg = (json.errors && json.errors[0] && json.errors[0].message) || 'Failed to get OTP';
+                        throw new Error(msg);
+                    }
             return json.data.url;
         }
 
