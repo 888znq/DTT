@@ -416,27 +416,25 @@
                     <span id="balance-display" style="color: #ffffff; font-weight: bold; font-size: 13px;">Loading...</span>
                 </div>
 
-                <input type="number" id="trade-amount" value="1" aria-label="Stake" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
-
                 <select id="trade-multiplier" aria-label="Multiplier" style="width: 60px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
-                                    <option value="100" selected>x100</option>
-                                    <option value="200">x200</option>
-                                    <option value="300">x300</option>
-                                    <option value="500">x500</option>
-                                    <option value="800">x800</option>
-                                </select>
-
-                <button id="trade-btn-row2" class="action-btn btn-call" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #0ecb81; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">UP</button>
-
-                <button id="trade-btn-put-row2" class="action-btn btn-put" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 16px !important; font-size: 13px; color: #f6465d; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">DOWN</button>
+                                                    <option value="100">x100</option>
+                                                    <option value="200">x200</option>
+                                                    <option value="300">x300</option>
+                                                    <option value="500">x500</option>
+                                                    <option value="800" selected>x800</option>
+                                                </select>
                 
-                                <input type="number" id="stop-loss" placeholder="SL" aria-label="Stop Loss" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+                                <input type="number" id="trade-amount" value="1" aria-label="Stake" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+
+                <button id="trade-btn-put-row2" class="action-btn btn-put" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: #f6465d; padding: 0 16px !important; font-size: 13px; color: #ffffff; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">SELL</button>
                 
-                                <input type="number" id="take-profit" placeholder="TP" aria-label="Take Profit" step="0.01" style="width: 55px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #ffffff; text-align: center; font-weight: bold; font-size: 13px; outline: none; margin: 0; padding: 0;">
+                                <button id="trade-btn-row2" class="action-btn btn-call" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: #0ecb81; padding: 0 16px !important; font-size: 13px; color: #ffffff; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">BUY</button>
+                
+                                
                 
                                 <button id="show-trades-btn" class="action-btn btn-log" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 10px !important; font-size: 11px; color: #ffcc00; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; white-space: nowrap;">POSITIONS</button>
                                 
-                                                                <button id="show-editor-btn" class="action-btn btn-log" style="border: none; border-right: 1px solid #ffffff !important; border-radius: 0; background: transparent; padding: 0 10px !important; font-size: 11px; color: #38bdf8; margin: 0 !important; height: 100%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; white-space: nowrap;">CODE</button>
+                                                                
                                                 
                                                                 <select id="pair-select" aria-label="Trading Pair" style="width: 90px; border: none; border-right: 1px solid #ffffff; border-radius: 0; background: transparent; color: #00e5ff; text-align: center; font-weight: bold; font-size: 12px; outline: none; margin: 0; padding: 0;">
                                     <option value="cryBTCUSD">BTC/USD</option>
@@ -760,8 +758,7 @@
         const connStatus = document.getElementById('conn-status');
         const loadingText = document.getElementById('loading-text');
         const multiplierSelect = document.getElementById('trade-multiplier');
-        const stopLossInput = document.getElementById('stop-loss');
-        const takeProfitInput = document.getElementById('take-profit');
+        
         const estPayoutDisplay = document.getElementById('est-payout-display');
         const positionsList = document.getElementById('positionsList');
         
@@ -825,12 +822,7 @@
                                         }, 1000);
                 });
         
-                document.getElementById('show-editor-btn').addEventListener('click', () => {
-                                    document.getElementById('editorModal').style.display = 'flex';
-                                    document.getElementById('editorModalOverlay').style.display = 'block';
-                                    renderScriptsList();
-                                    setTimeout(() => codeEditor.refresh(), 100);
-                                });
+                
                         
                                 document.getElementById('close-editor-btn').addEventListener('click', () => {
                                     document.getElementById('editorModal').style.display = 'none';
@@ -1263,7 +1255,7 @@
                                                                                                                                                                                                                                                                                                                                                 ctx.font = 'bold 12px sans-serif';
                                                                                                                                                                                                                                                                                                                                                 ctx.textAlign = 'right';
                                                                                                                                                                                                                                                                                                                                                 ctx.textBaseline = 'top';
-                                                                                                                                                                                                                                                                                                                                                ctx.fillText(`Fee Coverd [ $${Number(p.commission || 0).toFixed(2)} ]`, canvasWidth - yAxisWidth - 4, clampedBeY + 2);
+                                                                                                                                                                                                                                                                                                                                                ctx.fillText(`Fee Coverd [ $${(Number(p.commission || 0) * 2).toFixed(2)} ]`, canvasWidth - yAxisWidth - 4, clampedBeY + 2);
                                                                                                                                                                                                                                                                                     
                                                                                                                                                                                                                                                                                                                                                 const beBoxHeight = 22;
                                                                                                                                                                                                                                                                                                                                                 const beBoxY = clampedBeY - beBoxHeight / 2;
@@ -1536,10 +1528,11 @@
                     // i.e. where price movement has just covered the commission cost.
                     // priceMovePct needed to cover commission = commission / (stake * multiplier)
                     let breakeven = null;
-                    if (entry && mult && stake) {
-                        const pctToCoverFee = commission / (stake * mult);
-                        breakeven = isUp ? entry * (1 + pctToCoverFee) : entry * (1 - pctToCoverFee);
-                    }
+                                        if (entry && mult && stake) {
+                                            const roundtripFee = commission * 2;
+                                            const pctToCoverFee = roundtripFee / (stake * mult);
+                                            breakeven = isUp ? entry * (1 + pctToCoverFee) : entry * (1 - pctToCoverFee);
+                                        }
         
                     // Stop-out / liquidation level: prefer the API's own stop_out level if present,
                     // otherwise estimate it as the price move that would wipe out the full stake.
@@ -1891,37 +1884,30 @@
 
         // --- EXECUTE MULTIPLIER TRADE (MULTUP / MULTDOWN) ---
         function executeTrade(type) {
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                alert("Please wait, connecting to server...");
-                return;
-            }
-            const stake = parseFloat(document.getElementById('trade-amount').value) || 10;
-            const multiplier = Number(multiplierSelect.value) || 100;
-            const sl = parseFloat(stopLossInput.value);
-            const tp = parseFloat(takeProfitInput.value);
-
-            const parameters = {
-                amount: Number(stake),
-                basis: "stake",
-                contract_type: type, // MULTUP or MULTDOWN
-                currency: "USD",
-                multiplier: multiplier,
-                underlying_symbol: currentPair
-            };
-
-            const limitOrder = {};
-            if (!isNaN(sl) && sl > 0) limitOrder.stop_loss = sl;
-            if (!isNaN(tp) && tp > 0) limitOrder.take_profit = tp;
-            if (Object.keys(limitOrder).length > 0) parameters.limit_order = limitOrder;
-
-            const tradePayload = {
-                buy: "1",
-                price: Number(stake), // max price willing to pay to open (stake basis)
-                parameters: parameters
-            };
-
-            ws.send(JSON.stringify(tradePayload));
-        }
+                    if (!ws || ws.readyState !== WebSocket.OPEN) {
+                        alert("Please wait, connecting to server...");
+                        return;
+                    }
+                    const stake = parseFloat(document.getElementById('trade-amount').value) || 10;
+                    const multiplier = Number(multiplierSelect.value) || 100;
+        
+                    const parameters = {
+                        amount: Number(stake),
+                        basis: "stake",
+                        contract_type: type, // MULTUP or MULTDOWN
+                        currency: "USD",
+                        multiplier: multiplier,
+                        underlying_symbol: currentPair
+                    };
+        
+                    const tradePayload = {
+                        buy: "1",
+                        price: Number(stake), // max price willing to pay to open (stake basis)
+                        parameters: parameters
+                    };
+        
+                    ws.send(JSON.stringify(tradePayload));
+                }
 
         document.getElementById('trade-btn-row2').addEventListener('click', () => executeTrade("MULTUP"));
         document.getElementById('trade-btn-put-row2').addEventListener('click', () => executeTrade("MULTDOWN"));
